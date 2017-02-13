@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="pl.otros.logview.accept.query.org.apache.log4j.rule.MarkEqualsRuleTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2017-01-09T22:20:24" hostname="MP14216.local" time="0.008">
+  <properties/>
+  <testcase name="testEvaluateColorNegative" classname="pl.otros.logview.accept.query.org.apache.log4j.rule.MarkEqualsRuleTest" time="0.002"/>
+  <testcase name="testEvaluateColorPostive" classname="pl.otros.logview.accept.query.org.apache.log4j.rule.MarkEqualsRuleTest" time="0.0"/>
+  <testcase name="testEvaluateMarkedWithMarked" classname="pl.otros.logview.accept.query.org.apache.log4j.rule.MarkEqualsRuleTest" time="0.0"/>
+  <testcase name="testEvaluateMarkedWithNotMarked" classname="pl.otros.logview.accept.query.org.apache.log4j.rule.MarkEqualsRuleTest" time="0.0"/>
+  <testcase name="testEvaluateNotMarkedWithMarked" classname="pl.otros.logview.accept.query.org.apache.log4j.rule.MarkEqualsRuleTest" time="0.0"/>
+  <testcase name="testEvaluateNotMarkedWithNotMarked" classname="pl.otros.logview.accept.query.org.apache.log4j.rule.MarkEqualsRuleTest" time="0.0"/>
+  <testcase name="testNegationEvaluateColorNegative" classname="pl.otros.logview.accept.query.org.apache.log4j.rule.MarkEqualsRuleTest" time="0.0"/>
+  <testcase name="testNegationEvaluateColorPostive" classname="pl.otros.logview.accept.query.org.apache.log4j.rule.MarkEqualsRuleTest" time="0.0"/>
+  <testcase name="testNegationEvaluateMarkedWithMarked" classname="pl.otros.logview.accept.query.org.apache.log4j.rule.MarkEqualsRuleTest" time="0.0"/>
+  <testcase name="testNegationEvaluateMarkedWithNotMarked" classname="pl.otros.logview.accept.query.org.apache.log4j.rule.MarkEqualsRuleTest" time="0.0"/>
+  <testcase name="testNegationEvaluateNotMarkedWithMarked" classname="pl.otros.logview.accept.query.org.apache.log4j.rule.MarkEqualsRuleTest" time="0.0"/>
+  <testcase name="testNegationEvaluateNotMarkedWithNotMarked" classname="pl.otros.logview.accept.query.org.apache.log4j.rule.MarkEqualsRuleTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
