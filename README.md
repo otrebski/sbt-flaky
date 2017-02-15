@@ -51,8 +51,9 @@ ExampleSpec: A Stack should fail randomly sometimes failed in runs: 113, 141, 16
 
 ## Known issues
 
-If running a lot of tests for a many times you can get Out of memory error: `java.lang.OutOfMemoryError: Metaspace`
+If running a lot of tests for a many times you can get Out of memory error: `java.lang.OutOfMemoryError: Metaspace`. On report you will find flay test `(It is not a test)`.
 Try to tune JVM memory settings: `-XX:MaxMetaspaceSize=512m`
+For example env `JAVA_OPTS="-XX:MaxMetaspaceSize=512m" sbt "flaky times=400"`
 
 
 # TODO
