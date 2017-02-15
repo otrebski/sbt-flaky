@@ -49,6 +49,12 @@ ExampleSpec: A Stack should fail randomly failed in runs: 119, 120, 154, 160, 16
 ExampleSpec: A Stack should fail randomly sometimes failed in runs: 113, 141, 160, 225, 283
 ```
 
+## Known issues
+
+If running a lot of tests for a many times you can get Out of memory error: `java.lang.OutOfMemoryError: Metaspace`
+Try to tune JVM memory settings: `-XX:MaxMetaspaceSize=512m`
+
+
 # TODO
 - [x] Run tests X times
 - [x] Run tests for X minutes
