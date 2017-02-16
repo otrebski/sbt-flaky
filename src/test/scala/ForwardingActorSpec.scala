@@ -19,15 +19,15 @@ import scala.collection.immutable
 /**
  * a Test to show some TestKit examples
  */
-class TestKitUsageSpec
-  extends TestKit(ActorSystem("TestKitUsageSpec", ConfigFactory.parseString(TestKitUsageSpec.config)))
+class ForwardingActorSpec
+  extends TestKit(ActorSystem("TestKitUsageSpec", ConfigFactory.parseString(ForwardingActorSpec.config)))
   with DefaultTimeout
   with ImplicitSender
   with WordSpecLike
   with Matchers
   with BeforeAndAfterAll
   with LazyLogging {
-  import TestKitUsageSpec._
+  import ForwardingActorSpec._
 
   val forwardRef = system.actorOf(Props(classOf[ForwardingActor], testActor))
 
@@ -59,7 +59,7 @@ class TestKitUsageSpec
     "Forwards in a 2 huge chains" in {
       val forwardRef = system.actorOf(Props(classOf[ForwardingActor], testActor))
       val entryRef1 = (1 to 100).foldLeft(forwardRef)((ref,i) => system.actorOf(Props(classOf[ForwardingActor], ref)))
-      val entryRef2 = (1 to 110).foldLeft(forwardRef)((ref,i) => system.actorOf(Props(classOf[ForwardingActor], ref)))
+      val entryRef2 = (1 to 105).foldLeft(forwardRef)((ref,i) => system.actorOf(Props(classOf[ForwardingActor], ref)))
       within(500 millis) {
         entryRef1 ! "test1"
         entryRef2 ! "test2"
@@ -71,7 +71,7 @@ class TestKitUsageSpec
   }
 }
 
-object TestKitUsageSpec {
+object ForwardingActorSpec {
   // Define your test specific configuration here
   val config = """
     akka {
