@@ -49,7 +49,7 @@ private def processFolder(dir: File) : List[TestCase] = {
    .map(_.getAbsolutePath)
    .filter(_.endsWith("xml"))
    .map(x => Try{XML.loadFile(x)})
-   .filter(_.isSuccess)   
+   .filter(_.isSuccess)
    .map(_.get)
    .flatMap { xml => toTestCases(xml)}
 }
@@ -77,7 +77,7 @@ private def findFlakyTests(list: List[TestRun]): List[FlakyTest] = {
   }.toList
 }
 
-  def createReport(){
+  def createReport(): List[FlakyTest] = {
     //TODO use dir from task config
     val flakyDir = new File("target/flaky-report")
     val testRunDirs = flakyDir.listFiles.filter(_.isDirectory).toList
@@ -105,6 +105,7 @@ private def findFlakyTests(list: List[TestRun]): List[FlakyTest] = {
     flakyTesRuns.foreach{ flaky =>
       println(s"${flaky.clazz}: ${flaky.test} failed in runs: ${flaky.failedRuns.mkString(", ")}")
     }
+    flaky
   }
 
   def isFailed(dir:File): Boolean = {

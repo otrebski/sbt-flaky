@@ -62,7 +62,9 @@ object FlakyCommand {
           }
 
        }
-       Flaky.createReport()
+       val report = Flaky.createReport()
+       val slackMsg = Slack.render(report)
+       println(slackMsg)
        state
   }
 
