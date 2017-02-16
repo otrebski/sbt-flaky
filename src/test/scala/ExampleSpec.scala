@@ -1,6 +1,7 @@
-import collection.mutable.Stack
-import org.scalatest._
 import com.typesafe.scalalogging._
+import org.scalatest._
+
+import scala.collection.mutable.Stack
 
 class ExampleSpec extends FlatSpec with Matchers with LazyLogging {
 
@@ -9,27 +10,27 @@ class ExampleSpec extends FlatSpec with Matchers with LazyLogging {
     val stack = new Stack[Int]
     stack.push(1)
     stack.push(2)
-    stack.pop() should be (2)
-    stack.pop() should be (1)
+    stack.pop() should be(2)
+    stack.pop() should be(1)
   }
 
   it should "throw NoSuchElementException if an empty stack is popped" in {
     val emptyStack = new Stack[Int]
-    a [NoSuchElementException] should be thrownBy {
+    a[NoSuchElementException] should be thrownBy {
       emptyStack.pop()
     }
   }
 
   it should "fail sometimes" in {
-    (System.currentTimeMillis % 10 < 8) should be (true)
+    (System.currentTimeMillis % 10 < 8) should be(true)
   }
 
   it should "fail randomly often" in {
-    (new java.util.Random().nextInt(10)) should not be (0)
+    new java.util.Random().nextInt(10) should not be (0)
   }
 
   it should "fail randomly" in {
-    (new java.util.Random().nextInt(20)) should not be (0)
+    new java.util.Random().nextInt(20) should not be (0)
   }
 
   it should "fail randomly sometimes" in {
