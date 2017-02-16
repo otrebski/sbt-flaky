@@ -9,7 +9,8 @@ object FlakyCommand {
   val logFiles = List("./target/test.log", "./target/test.log.xml")
 
   //TODO run testOnly instead of test
-  def flaky = Command("flaky")(parser) { (state, args) =>
+  def flaky: Command = Command("flaky")(parser) { (state, args) =>
+
     println(s"Executed flaky command")
     case class TimeReport(times: Int, duration: Long) {
       def estimate(timesLeft: Int): String = {
@@ -24,11 +25,11 @@ object FlakyCommand {
     }
     dir.mkdirs()
 
-    var start = System.currentTimeMillis
+    val start = System.currentTimeMillis
 
     args match {
       case Times(count) =>
-        for (i <- (1 to count)) {
+        for (i <- 1 to count) {
           println(s"Running tests: $i")
           taskKeys.foreach(taskKey => Project.runTask(taskKey, state))
           moveFiles(i, logFiles)
@@ -44,7 +45,7 @@ object FlakyCommand {
           moveFiles(i, logFiles)
           val timeReport = TimeReport(i, System.currentTimeMillis - start)
           val timeLeft = end - System.currentTimeMillis
-          println(s"Test iteration $i finished. ETA: ${(timeLeft) / 1000}s [${timeReport.estimateCountIn(timeLeft)}]")
+          println(s"Test iteration $i finished. ETA: ${timeLeft / 1000}s [${timeReport.estimateCountIn(timeLeft)}]")
           i = i + 1
         }
       case FirstFailure =>
@@ -55,7 +56,7 @@ object FlakyCommand {
 
           taskKeys.foreach(taskKey => Project.runTask(taskKey, state))
           if (Flaky.isFailed(testReports)) {
-            foundFail = true;
+            foundFail = true
           }
           moveFiles(i, logFiles)
           i = i + 1
@@ -64,7 +65,10 @@ object FlakyCommand {
     }
     val report = Flaky.createReport()
     val slackMsg = Slack.render(report)
-    println(slackMsg)
+    //    println(slackMsg)
+    val hookId = for (u <- Option(System.getProperty("SLACK_HOOKID"))) yield u
+    hookId.foreach(h => Slack.send(h, slackMsg))
+
     state
   }
 
@@ -79,7 +83,7 @@ object FlakyCommand {
 
     val firstFailure = (Space ~> "firstFail")
       .examples("firstFail")
-      .map { a => FirstFailure }
+      .map { _ => FirstFailure }
 
     times | duration | firstFailure
   }

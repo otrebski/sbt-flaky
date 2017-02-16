@@ -111,7 +111,7 @@ object Flaky {
       }
     println("\nDetails:")
     flakyTesRuns.foreach { flaky =>
-      println(s"${flaky.clazz}: ${flaky.test} failed in runs: ${flaky.failedRuns.mkString(", ")}")
+      println(s"${flaky.clazz}: ${flaky.test} failed in runs: ${flaky.failedRuns.map(_.runName).mkString(", ")}")
     }
     flaky
   }
