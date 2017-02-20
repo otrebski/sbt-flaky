@@ -16,7 +16,7 @@ object Slack {
         val clazz = kv._1
         val list = kv._2
         val r = list
-          .map(flaky => s"- ${flaky.test} ${flaky.failures * 100 / flaky.totalRun}%")
+          .map(flaky => s"* ${flaky.test} ${flaky.failures * 100 / flaky.totalRun}%")
           .mkString("\\n")
         s"$clazz:\\n$r"
       }.mkString("\\n")

@@ -93,27 +93,7 @@ object Flaky {
       val testCases = processFolder(dir)
       TestRun(s"${dir.getName}", testCases)
     }
-    val flaky = findFlakyTests(testRuns.toList)
-    println("\nHealthy tests:")
-    flaky
-      .filter(_.failures == 0)
-      .foreach { healthy =>
-        println(s"${healthy.test}")
-      }
-    println("\nFlaky tests:")
-    val flakyTesRuns = flaky
-      .filter(_.failures > 0)
-      .sortBy(_.failures())
-      .reverse
-    flakyTesRuns
-      .foreach { flaky =>
-        println(s"${flaky.test} ${flaky.failures * 100 / flaky.totalRun}%")
-      }
-    println("\nDetails:")
-    flakyTesRuns.foreach { flaky =>
-      println(s"${flaky.clazz}: ${flaky.test} failed in runs: ${flaky.failedRuns.map(_.runName).mkString(", ")}")
-    }
-    flaky
+    findFlakyTests(testRuns)
   }
 
   def isFailed(dir: File): Boolean = {

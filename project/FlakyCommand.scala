@@ -10,8 +10,8 @@ object FlakyCommand {
 
   //TODO run testOnly instead of test
   def flaky: Command = Command("flaky")(parser) { (state, args) =>
+    state.log.info(s"Executed flaky command")
 
-    println(s"Executed flaky command")
     case class TimeReport(times: Int, duration: Long) {
       def estimate(timesLeft: Int): String = {
         val r = (duration / times) * timesLeft
@@ -30,29 +30,29 @@ object FlakyCommand {
     args match {
       case Times(count) =>
         for (i <- 1 to count) {
-          println(s"Running tests: $i")
+          state.log.info(s"Running tests: $i")
           taskKeys.foreach(taskKey => Project.runTask(taskKey, state))
           moveFiles(i, logFiles)
           val timeReport = TimeReport(i, System.currentTimeMillis - start)
-          println(s"Test iteration $i finished. ETA: ${timeReport.estimate(count - i)}")
+          state.log.info(s"Test iteration $i finished. ETA: ${timeReport.estimate(count - i)}")
         }
       case Duration(minutes) =>
         var i = 1
         val end = start + minutes.toLong * 60 * 1000
         while (System.currentTimeMillis < end) {
-          println(s"Running tests: $i")
+          state.log.info(s"Running tests: $i")
           taskKeys.foreach(taskKey => Project.runTask(taskKey, state))
           moveFiles(i, logFiles)
           val timeReport = TimeReport(i, System.currentTimeMillis - start)
           val timeLeft = end - System.currentTimeMillis
-          println(s"Test iteration $i finished. ETA: ${timeLeft / 1000}s [${timeReport.estimateCountIn(timeLeft)}]")
+          state.log.info(s"Test iteration $i finished. ETA: ${timeLeft / 1000}s [${timeReport.estimateCountIn(timeLeft)}]")
           i = i + 1
         }
       case FirstFailure =>
         var i = 1
         var foundFail = false
         while (!foundFail) {
-          println(s"Running tests: $i")
+          state.log.info(s"Running tests: $i")
 
           taskKeys.foreach(taskKey => Project.runTask(taskKey, state))
           if (Flaky.isFailed(testReports)) {
@@ -64,8 +64,8 @@ object FlakyCommand {
 
     }
     val report = Flaky.createReport()
+    state.log.info(TextReport.render(report))
     val slackMsg = Slack.render(report)
-    //    println(slackMsg)
     val hookId = for (u <- Option(System.getProperty("SLACK_HOOKID"))) yield u
     hookId.foreach(h => Slack.send(h, slackMsg))
 
