@@ -21,6 +21,10 @@ Run tests until first failure:
 sbt clean "flaky firstFail"
 ```
 
+## Sending reports to slack
+To send report to Slack, set SLACK_HOOKID variable with your Slack hook id. For example if your slack hook is `https://hooks.slack.com/services/AAAAAAAAA/BBBBBBBBB/CCCCCCCCCCCCCCCCCCCCCCCC `, run sbt with command line like this:
+`sbt -DSLACK_HOOKID=AAAAAAAAA/BBBBBBBBB/CCCCCCCCCCCCCCCCCCCCCCCC clean "flaky times=1"`
+
 ## How it works.
 Command `flaky` execute `test` task mulitplie times. After every test iteration, test results from `./target/test-reports` is moved to `./target/flaky-report/<ITERATION>`. Test taks is run for X times, for X minutes or untill first failing test task. All tests results are used to calculate success ratio for every test.
 
@@ -55,14 +59,15 @@ If running a lot of tests for a many times you can get Out of memory error: `jav
 Try to tune JVM memory settings: `-XX:MaxMetaspaceSize=512m`
 For example env `JAVA_OPTS="-XX:MaxMetaspaceSize=512m" sbt "flaky times=400"`
 
+Additionally, you can run tests in separate JVM
+
 
 # TODO
 - [x] Run tests X times
 - [x] Run tests for X minutes
 - [x] Run test until first failure
-- [ ] Create SBT plugin
 - [x] Copy log file to run test iteration dir
-- [ ] Execute webhook after tests (slack)
+- [x] Execute webhook after tests (slack)
+- [ ] Create SBT plugin
 - [ ] Generating report (HTML, XML or JSON)
-- [ ] Configure test task
 - [ ] Select single test (or test class) to run

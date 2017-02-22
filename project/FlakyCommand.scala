@@ -10,8 +10,7 @@ object FlakyCommand {
 
   //TODO run testOnly instead of test
   def flaky: Command = Command("flaky")(parser) { (state, args) =>
-    state.log.info(s"Executed flaky command")
-
+    state.log.info(s"Executing flaky command")
     case class TimeReport(times: Int, duration: Long) {
       def estimate(timesLeft: Int): String = {
         val r = (duration / times) * timesLeft
@@ -67,7 +66,7 @@ object FlakyCommand {
     state.log.info(TextReport.render(report))
     val slackMsg = Slack.render(report)
     val hookId = for (u <- Option(System.getProperty("SLACK_HOOKID"))) yield u
-    hookId.foreach(h => Slack.send(h, slackMsg))
+    hookId.foreach(h => Slack.send(h, slackMsg, state.log))
 
     state
   }

@@ -20,5 +20,7 @@ libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.7" % "test"
 
 resolvers += Resolver.typesafeRepo("releases")
 
+fork in Test := true
+
 lazy val root = (project in file(".")).
   settings(commands ++= Seq(flaky))

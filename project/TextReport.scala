@@ -20,6 +20,9 @@ object TextReport {
     flakyTesRuns.foreach { flaky =>
       sb.append(s"${flaky.clazz}: ${flaky.test} failed in runs: ${flaky.failedRuns.map(_.runName).mkString(", ")}\n")
     }
+    if (flakyTesRuns.isEmpty){
+      sb.append("No flaky test detected")
+    }
     sb.toString
   }
 }
