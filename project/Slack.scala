@@ -37,7 +37,6 @@ object Slack {
     summaryAttachment
   }
 
-  //TODO escape values in JSON
   def renderFailed(flaky: List[FlakyTest]): String = {
     val failedCount = flaky.count(_.failures > 0)
     val flakyText = flaky
