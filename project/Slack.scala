@@ -8,6 +8,7 @@ import scala.collection.immutable.{Iterable, Seq}
 
 object Slack {
 
+  val escapedBackslash = """\\\""""
 
 
   def render(flaky: List[FlakyTest]): String = {
@@ -95,7 +96,7 @@ object Slack {
            |  "pretext": "Report for $clazzTestName",
            |  "author_name": "sbt-flaky",
            |  "title": "Flaky test details for $clazzTestName: ",
-           |  "text": "${text.mkString("\\n")}",
+           |  "text": "${text.mkString("\\n").replace("\"",escapedBackslash).replace("\n","\\n").replace("\r","\\r")}",
            |  "footer": "sbt-flaky",
            |  "ts": $timestamp
            |}
@@ -124,6 +125,7 @@ object Slack {
     urlConnection.setRequestMethod("POST")
 
     // Writing the post data to the HTTP request body
+    log.info(jsonMsg)
     val httpRequestBodyWriter = new BufferedWriter(new OutputStreamWriter(urlConnection.getOutputStream()))
     httpRequestBodyWriter.write(jsonMsg)
     httpRequestBodyWriter.close()
