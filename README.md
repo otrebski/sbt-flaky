@@ -70,4 +70,4 @@ Additionally, you can run tests in separate JVM
 - [x] Execute webhook after tests (slack)
 - [ ] Create SBT plugin
 - [ ] Generating report (HTML, XML or JSON)
-- [ ] Select single test (or test class) to run
+- [ ] Select single test (or test class) to run (like testOnly task)
