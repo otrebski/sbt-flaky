@@ -89,6 +89,7 @@ object FlakyCommand {
 
   private def moveFiles(iteration: Int, logFiles: List[String]): Unit = {
     val iterationDir = new java.io.File(dir, s"$iteration")
+    if (iterationDir.exists()) {iterationDir.delete()}
     testReports.renameTo(iterationDir)
     logFiles.foreach(f => new File(f).renameTo(new File(iterationDir, new File(f).getName)))
   }
