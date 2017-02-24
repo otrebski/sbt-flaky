@@ -58,6 +58,19 @@ class ForwardingActorSpec
         expectMsg("test2")
       }
     }
+
+    "Forwards in a chains of 100 and 100 with expectMsgAllOf" in {
+      val forwardRef = system.actorOf(Props(classOf[ForwardingActor], testActor))
+      val entryRef1 = (1 to 100).foldLeft(forwardRef)((ref, i) => system.actorOf(Props(classOf[ForwardingActor], ref)))
+      val entryRef2 = (1 to 100).foldLeft(forwardRef)((ref, i) => system.actorOf(Props(classOf[ForwardingActor], ref)))
+      within(500 millis) {
+        entryRef1 ! "test1"
+        entryRef2 ! "test2"
+        entryRef2 ! "test3"
+        expectMsgAllOf("test1", "test2", "test3")
+      }
+    }
+
     "Forwards in a chains of 100 and 110" in {
       val forwardRef = system.actorOf(Props(classOf[ForwardingActor], testActor))
       val entryRef1 = (1 to 100).foldLeft(forwardRef)((ref, i) => system.actorOf(Props(classOf[ForwardingActor], ref)))
