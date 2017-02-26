@@ -117,4 +117,12 @@ class FlakySpec extends WordSpec with Matchers {
     testCases shouldBe expected
   }
 
+  "should create report using junit reports" ignore {
+    //TODO implement test
+  }
+
+  "should process junit reports" ignore {
+    //TODO implement test
+  }
+
 }
