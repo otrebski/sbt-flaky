@@ -1,5 +1,8 @@
+package flaky
+
 import java.io.File
 
+import scala.language.postfixOps
 import scala.util.Try
 import scala.xml.{Elem, NodeSeq, XML}
 

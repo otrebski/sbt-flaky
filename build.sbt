@@ -1,26 +1,32 @@
-import FlakyCommand._
+organization := "pl.otrebski"
 
-name := "Flaky"
+name := "sbt-flaky"
 
 version := "1.0"
 
-scalaVersion := "2.11.8"
+//scalaVersion := "2.11.8"
 
-libraryDependencies += "org.scala-lang.modules" % "scala-xml_2.11" % "1.0.6"
+sbtPlugin := true
 
-libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
+javaVersionPrefix in javaVersionCheck := Some("1.8") //TODO change this to 1.7 or 1.6 ?
 
-libraryDependencies += "com.typesafe.akka" % "akka-actor_2.11" % "2.4.17" % "test"
+ScriptedPlugin.scriptedSettings
 
-libraryDependencies += "com.typesafe.akka" % "akka-testkit_2.11" % "2.4.17" % "test"
+scriptedLaunchOpts := { scriptedLaunchOpts.value ++
+  Seq("-Xmx1024M", "-XX:MaxPermSize=256M", "-Dplugin.version=" + version.value)
+}
 
-libraryDependencies += "com.typesafe.scala-logging" % "scala-logging_2.11" % "3.5.0" % "test"
+scriptedBufferLog := false
 
-libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.7" % "test"
+//publishMavenStyle := false
+
+//bintrayOrganization := Some("bintrayOrganization")
+
+//bintrayPackageLabels := Seq("sbt", "flaky-test")
+
+//bintrayRepository := "sbt-plugin-releases"
+
+licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
 
 resolvers += Resolver.typesafeRepo("releases")
 
-fork in Test := true
-
-lazy val root = (project in file(".")).
-  settings(commands ++= Seq(flaky))

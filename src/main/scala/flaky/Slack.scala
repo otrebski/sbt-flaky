@@ -1,14 +1,18 @@
-import java.io.{BufferedWriter, OutputStreamWriter}
+package flaky
+
+import java.io.{BufferedWriter, File, OutputStreamWriter, PrintWriter}
 import java.net.{HttpURLConnection, URL}
 import java.util.Scanner
 
 import sbt.Logger
 
 import scala.collection.immutable.{Iterable, Seq}
+import scala.util.{Failure, Success, Try}
 
 object Slack {
 
   val escapedBackslash = """\\\""""
+  val slackReportFile = new File("target/flaky-report/slack.json")
 
 
   def render(flaky: List[FlakyTest]): String = {
@@ -95,7 +99,7 @@ object Slack {
            |  "pretext": "Report for $clazzTestName",
            |  "author_name": "sbt-flaky",
            |  "title": "Flaky test details for $clazzTestName: ",
-           |  "text": "${text.mkString("\\n").replace("\"",escapedBackslash).replace("\n","\\n").replace("\r","\\r")}",
+           |  "text": "${text.mkString("\\n").replace("\"", escapedBackslash).replace("\n", "\\n").replace("\r", "\\r")}",
            |  "footer": "sbt-flaky",
            |  "ts": $timestamp
            |}
@@ -115,25 +119,37 @@ object Slack {
     msg
   }
 
-  def send(hookId: String, jsonMsg: String,log: Logger): Unit = {
-    log.info("Sending report")
-    val url = new URL(s"https://hooks.slack.com/services/$hookId")
-    val urlConnection = url.openConnection().asInstanceOf[HttpURLConnection]
-    // Indicate that we want to write to the HTTP request body
-    urlConnection.setDoOutput(true)
-    urlConnection.setRequestMethod("POST")
-
-    // Writing the post data to the HTTP request body
-    log.info(jsonMsg)
-    val httpRequestBodyWriter = new BufferedWriter(new OutputStreamWriter(urlConnection.getOutputStream()))
-    httpRequestBodyWriter.write(jsonMsg)
-    httpRequestBodyWriter.close()
-
-    val scanner = new Scanner(urlConnection.getInputStream())
-    log.info("Response from SLACK:")
-    while (scanner.hasNextLine) {
-      log.info(s"Response from SLACK: ${scanner.nextLine()}")
+  def send(webHook: String, jsonMsg: String, log: Logger): Unit = {
+    log.info("Sending report to slack")
+    log.debug("Dumping slack msg to file")
+    new PrintWriter(slackReportFile) {
+      write(jsonMsg); close()
     }
-    scanner.close()
+
+    val send: Try[Unit] = Try {
+      val url = new URL(webHook)
+      val urlConnection = url.openConnection().asInstanceOf[HttpURLConnection]
+      // Indicate that we want to write to the HTTP request body
+      urlConnection.setDoOutput(true)
+      urlConnection.setRequestMethod("POST")
+
+      // Writing the post data to the HTTP request body
+      log.debug(jsonMsg)
+      val httpRequestBodyWriter = new BufferedWriter(new OutputStreamWriter(urlConnection.getOutputStream()))
+      httpRequestBodyWriter.write(jsonMsg)
+      httpRequestBodyWriter.close()
+
+      val scanner = new Scanner(urlConnection.getInputStream())
+      log.debug("Response from SLACK:")
+      while (scanner.hasNextLine) {
+        log.debug(s"Response from SLACK: ${scanner.nextLine()}")
+      }
+      scanner.close()
+    }
+    send match {
+      case Success(_) => log.info("Notification successfully send to Slack")
+      case Failure(e) => log.error(s"Can't send message to slack: ${e.getMessage}")
+    }
+
   }
 }

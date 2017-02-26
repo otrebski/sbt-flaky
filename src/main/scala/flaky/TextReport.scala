@@ -1,3 +1,5 @@
+package flaky
+
 object TextReport {
   def render(flaky: List[FlakyTest]): String = {
     val sb = new StringBuilder

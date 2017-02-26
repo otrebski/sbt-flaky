@@ -1,3 +1,5 @@
+package flaky
+
 
 import sbt._
 
@@ -11,6 +13,8 @@ object FlakyCommand {
   //TODO run testOnly instead of test
   def flaky: Command = Command("flaky")(parser) { (state, args) =>
     state.log.info(s"Executing flaky command")
+    val slackHook: Option[String] = Project.extract(state).get(FlakyPlugin.autoImport.flakySlackHook)
+
     case class TimeReport(times: Int, duration: Long) {
       def estimate(timesLeft: Int): String = {
         val r = (duration / times) * timesLeft
@@ -64,9 +68,10 @@ object FlakyCommand {
     }
     val report = Flaky.createReport()
     state.log.info(TextReport.render(report))
-    val slackMsg = Slack.render(report)
-    val hookId = for (u <- Option(System.getProperty("SLACK_HOOKID"))) yield u
-    hookId.foreach(h => Slack.send(h, slackMsg, state.log))
+    slackHook.foreach { hookId =>
+      val slackMsg = Slack.render(report)
+      Slack.send(hookId, slackMsg, state.log)
+    }
 
     state
   }
@@ -89,7 +94,9 @@ object FlakyCommand {
 
   private def moveFiles(iteration: Int, logFiles: List[String]): Unit = {
     val iterationDir = new java.io.File(dir, s"$iteration")
-    if (iterationDir.exists()) {iterationDir.delete()}
+    if (iterationDir.exists()) {
+      iterationDir.delete()
+    }
     testReports.renameTo(iterationDir)
     logFiles.foreach(f => new File(f).renameTo(new File(iterationDir, new File(f).getName)))
   }
