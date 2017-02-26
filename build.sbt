@@ -18,6 +18,8 @@ scriptedLaunchOpts := { scriptedLaunchOpts.value ++
 
 scriptedBufferLog := false
 
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
+
 //publishMavenStyle := false
 
 //bintrayOrganization := Some("bintrayOrganization")

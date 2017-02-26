@@ -66,6 +66,7 @@ object FlakyCommand {
         }
 
     }
+    //TODO use dir from task config
     val report = Flaky.createReport()
     state.log.info(TextReport.render(report))
     slackHook.foreach { hookId =>
