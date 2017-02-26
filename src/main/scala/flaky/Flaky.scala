@@ -39,14 +39,15 @@ object Flaky {
       val time = testcase \ "@time"
       val fail: NodeSeq = testcase \ "failure"
       val error = testcase \ "error"
-      //TODO extract data from error tag
 
-      val failureDetails = fail.headOption.map { head =>
-        FailureDetails(
-          head \ "@message" text,
-          head \ "@type" text,
-          head.text)
-      }
+      val failureDetails: Option[FailureDetails] = fail.headOption
+        .orElse(error.headOption)
+        .map { head =>
+          FailureDetails(
+            head \ "@message" text,
+            head \ "@type" text,
+            head.text)
+        }
 
       TestCase(
         runName,

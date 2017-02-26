@@ -115,7 +115,6 @@ class FlakySpec extends WordSpec with Matchers {
     val testCases: Seq[TestCase] = Flaky.parseJunitXmlReport("run1", XML.loadFile(file))
 
     testCases shouldBe expected
-
   }
 
 }
