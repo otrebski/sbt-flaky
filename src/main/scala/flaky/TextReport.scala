@@ -2,8 +2,9 @@ package flaky
 
 object TextReport {
   //$pi%1.5f
-  def render(flaky: List[FlakyTest]): String = {
+  def render(projectName: String, flaky: List[FlakyTest]): String = {
     val sb = new StringBuilder
+    sb.append(s"Flaky tests result for $projectName")
     sb.append("\nHealthy tests:\n")
     flaky
       .filter(_.failures == 0)
@@ -23,7 +24,7 @@ object TextReport {
     flakyTesRuns.foreach { flaky =>
       sb.append(s"${flaky.clazz}: ${flaky.test} failed in runs: ${flaky.failedRuns.map(_.runName).mkString(", ")}\n")
     }
-    if (flakyTesRuns.isEmpty){
+    if (flakyTesRuns.isEmpty) {
       sb.append("No flaky test detected")
     }
     sb.toString

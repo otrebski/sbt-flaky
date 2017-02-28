@@ -68,9 +68,10 @@ object FlakyCommand {
     }
     //TODO use dir from task config
     val report = Flaky.createReport()
-    state.log.info(TextReport.render(report))
+    val name = Project.extract(state).get(sbt.Keys.name)
+    state.log.info(TextReport.render(name, report))
     slackHook.foreach { hookId =>
-      val slackMsg = Slack.render(report)
+      val slackMsg = Slack.render(name, report)
       Slack.send(hookId, slackMsg, state.log)
     }
 
