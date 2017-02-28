@@ -1,6 +1,7 @@
 package flaky
 
 object TextReport {
+  //$pi%1.5f
   def render(flaky: List[FlakyTest]): String = {
     val sb = new StringBuilder
     sb.append("\nHealthy tests:\n")
@@ -16,7 +17,7 @@ object TextReport {
       .reverse
     flakyTesRuns
       .foreach { flaky =>
-        sb.append(s"${flaky.test} ${flaky.failures * 100 / flaky.totalRun}%\n")
+        sb.append(f"${flaky.test} ${flaky.failures * 100f / flaky.totalRun}%.2f%%\n")
       }
     sb.append("\nDetails:\n")
     flakyTesRuns.foreach { flaky =>
@@ -27,4 +28,6 @@ object TextReport {
     }
     sb.toString
   }
+
+
 }

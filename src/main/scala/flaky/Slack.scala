@@ -24,6 +24,7 @@ object Slack {
   }
 
   def renderNoFailures(flaky: List[FlakyTest]): String = {
+    //can use lib for message formatting https://github.com/gilbertw1/slack-scala-client/blob/master/src/main/scala/slack/models/package.scala
     val timestamp = System.currentTimeMillis()
     val summaryAttachment =
       s"""
@@ -50,7 +51,7 @@ object Slack {
         val clazz = kv._1
         val list = kv._2
         val r = list
-          .map(flaky => s"* ${flaky.test} ${flaky.failures * 100 / flaky.totalRun}%")
+          .map(flaky => f"* ${flaky.test} ${flaky.failures * 100f / flaky.totalRun}%%")
           .mkString("\\n")
         s"$clazz:\\n$r"
       }.mkString("\\n")
