@@ -8,7 +8,7 @@ version := "0.1"
 
 sbtPlugin := true
 
-javaVersionPrefix in javaVersionCheck := Some("1.6") //TODO change this to 1.7 or 1.6 ?
+javaVersionPrefix in javaVersionCheck := Some("1.8") //Should I compile with specific version?
 
 ScriptedPlugin.scriptedSettings
 
