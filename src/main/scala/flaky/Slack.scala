@@ -31,7 +31,7 @@ object Slack {
          |{
          |  "fallback": "Flaky test result for $projectName",
          |  "color": "#36a64f",
-         |  "pretext": "Flaky test report",
+         |  "pretext": "Flaky test report for $projectName",
          |  "author_name": "sbt-flaky",
          |  "title": "Flaky test result",
          |  "text": "All tests are correct [${flaky.headOption.map(f => f.totalRun).getOrElse(0)} runs]",
@@ -63,9 +63,9 @@ object Slack {
          |{
          |  "fallback": "Flaky test result for $projectName",
          |  "color": "danger",
-         |  "pretext": "Flaky test report",
+         |  "pretext": "Flaky test report for $projectName",
          |  "author_name": "sbt-flaky",
-         |  "title": "Flaky test result: $failedCount on ${flaky.size}",
+         |  "title": "Flaky test result: $failedCount of ${flaky.size}",
          |  "text": "$flakyText",
          |  "footer": "sbt-flaky",
          |  "ts": $timestamp
