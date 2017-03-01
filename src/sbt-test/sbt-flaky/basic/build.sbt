@@ -1,6 +1,6 @@
 enablePlugins(FlakyPlugin)
 
-name := "app"
+name := "basic"
 
 scalaVersion := "2.11.8"
 
