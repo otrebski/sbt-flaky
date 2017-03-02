@@ -2,7 +2,7 @@ language: scala
 os:
   - linux
 script:
-  - sbt ++$TRAVIS_SCALA_VERSION scripted
+  - sbt ++$TRAVIS_SCALA_VERSION test; scripted
 scala:
   - 2.10.6
 jdk:
