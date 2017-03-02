@@ -8,6 +8,8 @@ This project is proof of concept of flaky test detector SBT plugin. It can run t
 
 ## Installation
 
+:warning: Plugin is not deployed to repo yet ! :warning:
+
 Add plugin to project configuration `project/plugins.sbt` or global configuration `~/.sbt/0.13/plugins/plugins.sbt`
 ```scala
 addSbtPlugin("pl.otrebski" % "sbt-flaky" % "0.1")
