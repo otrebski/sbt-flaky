@@ -5,8 +5,11 @@ import sbt._
 
 object FlakyCommand {
 
+  //TODO settingKey
   val testReports = new java.io.File("./target/test-reports")
+  //TODO settingKey
   val dir = new java.io.File("./target/flaky-report")
+  //TODO settingKey
   val logFiles = List("./target/test.log", "./target/test.log.xml")
 
   //TODO run testOnly instead of test
