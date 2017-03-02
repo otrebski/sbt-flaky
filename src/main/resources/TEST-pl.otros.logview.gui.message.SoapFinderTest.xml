@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="pl.otros.logview.gui.message.SoapFinderTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2017-01-09T22:20:09" hostname="MP14216.local" time="0.006">
-  <properties/>
-  <testcase name="testFindSoap" classname="pl.otros.logview.gui.message.SoapFinderTest" time="0.001"/>
-  <testcase name="testFindSoapTag" classname="pl.otros.logview.gui.message.SoapFinderTest" time="0.004"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

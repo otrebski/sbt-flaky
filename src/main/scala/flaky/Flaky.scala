@@ -1,15 +1,19 @@
+package flaky
+
 import java.io.File
 
+import scala.language.postfixOps
 import scala.util.Try
 import scala.xml.{Elem, NodeSeq, XML}
 
-case class TestCase( runName: String,
-                     clazz: String,
-                     test: String,
-                     time: Float,
-                     failureDetails:Option[FailureDetails] = None
+case class TestCase(runName: String,
+                    clazz: String,
+                    test: String,
+                    time: Float,
+                    failureDetails: Option[FailureDetails] = None
                    )
-case class FailureDetails(message:String, ftype:String, stacktrace :String)
+
+case class FailureDetails(message: String, ftype: String, stacktrace: String)
 
 case class TestRun(
                     name: String,
@@ -27,7 +31,7 @@ case class FlakyTest(
 
 object Flaky {
 
-  private def toTestCases(runName:String, xml: Elem): List[TestCase] = {
+  def parseJunitXmlReport(runName: String, xml: Elem): List[TestCase] = {
     val testCases = xml \\ "testcase"
     testCases.map { testcase =>
       val className = testcase \ "@classname"
@@ -35,14 +39,15 @@ object Flaky {
       val time = testcase \ "@time"
       val fail: NodeSeq = testcase \ "failure"
       val error = testcase \ "error"
-      //TODO extract data from error tag
 
-      val failureDetails = fail.headOption.map { head =>
-        FailureDetails(
-          head \ "@message" text,
-          head \ "@type" text,
-          head.text)
-      }
+      val failureDetails: Option[FailureDetails] = fail.headOption
+        .orElse(error.headOption)
+        .map { head =>
+          FailureDetails(
+            head \ "@message" text,
+            head \ "@type" text,
+            head.text)
+        }
 
       TestCase(
         runName,
@@ -54,7 +59,7 @@ object Flaky {
     }.toList
   }
 
-  private def processFolder(dir: File): List[TestCase] = {
+  def processFolder(dir: File): List[TestCase] = {
     val f = dir.listFiles.toList
     f
       .map(_.getAbsolutePath)
@@ -64,15 +69,11 @@ object Flaky {
       })
       .filter(_.isSuccess)
       .map(_.get)
-      .flatMap { xml => toTestCases(dir.getName, xml) }
+      .flatMap { xml => parseJunitXmlReport(dir.getName, xml) }
   }
 
-  private def findFlakyTests(list: List[TestRun]): List[FlakyTest] = {
+  def findFlakyTests(list: List[TestRun]): List[FlakyTest] = {
     case class Test(clazz: String, test: String)
-    val keys = list
-      .flatMap(tr => tr.testCases)
-      .map(tc => Test(tc.clazz, tc.test))
-      .toSet
 
     val map = list.flatMap(tr => tr.testCases)
       .groupBy(tc => Test(tc.clazz, tc.test))
@@ -85,9 +86,7 @@ object Flaky {
     }.toList
   }
 
-  def createReport(): List[FlakyTest] = {
-    //TODO use dir from task config
-    val flakyDir = new File("target/flaky-report")
+  def createReport(flakyDir: File = new File("target/flaky-report")): List[FlakyTest] = {
     val testRunDirs = flakyDir.listFiles.filter(_.isDirectory).toList
     val testRuns = testRunDirs.map { dir =>
       val testCases = processFolder(dir)

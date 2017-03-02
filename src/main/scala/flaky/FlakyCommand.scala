@@ -1,16 +1,24 @@
+package flaky
+
 
 import sbt._
 
 object FlakyCommand {
 
+  //TODO settingKey
   val testReports = new java.io.File("./target/test-reports")
+  //TODO settingKey
   val dir = new java.io.File("./target/flaky-report")
-  val taskKeys = List(Keys.test in Test)
+  //TODO settingKey
   val logFiles = List("./target/test.log", "./target/test.log.xml")
 
   //TODO run testOnly instead of test
   def flaky: Command = Command("flaky")(parser) { (state, args) =>
     state.log.info(s"Executing flaky command")
+//    val targetDir = Project.extract(state).get(Keys.target)
+    val slackHook: Option[String] = Project.extract(state).get(FlakyPlugin.autoImport.flakySlackHook)
+    val taskKeys: Seq[TaskKey[Unit]] = Project.extract(state).get(FlakyPlugin.autoImport.flakyTask)
+
     case class TimeReport(times: Int, duration: Long) {
       def estimate(timesLeft: Int): String = {
         val r = (duration / times) * timesLeft
@@ -62,11 +70,14 @@ object FlakyCommand {
         }
 
     }
+    //TODO use dir from task config
     val report = Flaky.createReport()
-    state.log.info(TextReport.render(report))
-    val slackMsg = Slack.render(report)
-    val hookId = for (u <- Option(System.getProperty("SLACK_HOOKID"))) yield u
-    hookId.foreach(h => Slack.send(h, slackMsg, state.log))
+    val name = Project.extract(state).get(sbt.Keys.name)
+    state.log.info(TextReport.render(name, report))
+    slackHook.foreach { hookId =>
+      val slackMsg = Slack.render(name, report)
+      Slack.send(hookId, slackMsg, state.log)
+    }
 
     state
   }
@@ -89,7 +100,9 @@ object FlakyCommand {
 
   private def moveFiles(iteration: Int, logFiles: List[String]): Unit = {
     val iterationDir = new java.io.File(dir, s"$iteration")
-    if (iterationDir.exists()) {iterationDir.delete()}
+    if (iterationDir.exists()) {
+      iterationDir.delete()
+    }
     testReports.renameTo(iterationDir)
     logFiles.foreach(f => new File(f).renameTo(new File(iterationDir, new File(f).getName)))
   }

@@ -1,6 +1,10 @@
+package flaky
+
 object TextReport {
-  def render(flaky: List[FlakyTest]): String = {
+  //$pi%1.5f
+  def render(projectName: String, flaky: List[FlakyTest]): String = {
     val sb = new StringBuilder
+    sb.append(s"Flaky tests result for $projectName")
     sb.append("\nHealthy tests:\n")
     flaky
       .filter(_.failures == 0)
@@ -14,15 +18,17 @@ object TextReport {
       .reverse
     flakyTesRuns
       .foreach { flaky =>
-        sb.append(s"${flaky.test} ${flaky.failures * 100 / flaky.totalRun}%\n")
+        sb.append(f"${flaky.test} ${flaky.failures * 100f / flaky.totalRun}%.2f%%\n")
       }
     sb.append("\nDetails:\n")
     flakyTesRuns.foreach { flaky =>
       sb.append(s"${flaky.clazz}: ${flaky.test} failed in runs: ${flaky.failedRuns.map(_.runName).mkString(", ")}\n")
     }
-    if (flakyTesRuns.isEmpty){
+    if (flakyTesRuns.isEmpty) {
       sb.append("No flaky test detected")
     }
     sb.toString
   }
+
+
 }

@@ -1,0 +1,18 @@
+> flaky times=1
+$ exists sampleTask1.txt
+$ exists sampleTask2.txt
+
+
+#1. # starts a one-line comment
+#2. > name sends a task to sbt (and tests if it succeeds)#touch path+ creates or updates the timestamp on the files
+#3. $ name arg* performs a file command (and tests if it succeeds)#delete path+ deletes the files
+#4. -> name sends a task to sbt, but expects it to fail#exists path+ checks if the files exist
+#5. -$ name arg* performs a file command, but expects it to fail#mkdir path+ creates dirs
+#absent path+ checks if the files don't exist
+#newer source target checks if source is newer
+#pause pauses until enter is pressed
+#sleep time sleeps
+#exec command args* runs the command in another process
+#copy-file fromPath toPath copies the file
+#copy fromPath+ toDir copies the paths to toDir preserving relative structure
+#copy-flat fromPath+ toDir copies the paths to toDir flat

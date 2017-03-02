@@ -1,0 +1,18 @@
+Test iteration 3 finished. ETA: 0s
+
+Healthy tests:
+A Stack should fail randomly
+A Stack should throw NoSuchElementException if an empty stack is popped
+A Stack should fail randomly sometimes
+A ForwardingActor should Forward a message it receives
+A ForwardingActor should Forwards in a huge chain
+A Stack should fail randomly often
+A Stack should pop values in last-in-first-out order
+
+Flaky tests:
+A ForwardingActor should Forwards in a 2 huge chains 33%
+A Stack should fail sometimes 33%
+
+Details:
+TestKitUsageSpec: A ForwardingActor should Forwards in a 2 huge chains failed in runs: 1
+ExampleSpec: A Stack should fail sometimes failed in runs: 3
