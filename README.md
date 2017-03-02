@@ -43,7 +43,7 @@ flakySlackHook := Some("https://hooks.slack.com/services/AAAAAAAAA/BBBBBBBBB/CCC
 
 
 ## How it works.
-Command `flaky` execute `test` task mulitplie times. After every test iteration, test results from `./target/test-reports` is moved to `./target/flaky-report/<ITERATION>`. Test taks is run for X times, for X minutes or untill first failing test task. All tests results are used to calculate success ratio for every test.
+Command `flaky` execute `test` task multiple times. After every test iteration, test results from `./target/test-reports` is moved to `./target/flaky-test-reports/<ITERATION>`. Test task is run for X times, for X minutes or until first failing test task. All tests results are used to calculate success ratio for every test.
 
 ## Example report
 

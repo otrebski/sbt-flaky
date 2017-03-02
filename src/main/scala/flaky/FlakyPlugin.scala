@@ -11,6 +11,8 @@ object FlakyPlugin extends AutoPlugin {
   object autoImport {
     val flakySlackHook: SettingKey[Option[String]] = settingKey[Option[String]]("Slack web hook used to notify about test result")
     val flakyTask: SettingKey[Seq[TaskKey[Unit]]] = settingKey[Seq[TaskKey[Unit]]]("Tasks to run, by default test in Test")
+    val flakyReportsDir: SettingKey[String] = settingKey[String]("Name of folder in target dir to store test reports and additional files")
+    val flakyAdditionalFiles: SettingKey[List[File]] = settingKey[List[File]]("List of additional files to backup after test run (for example log files)")
   }
 
   import autoImport._
@@ -18,7 +20,9 @@ object FlakyPlugin extends AutoPlugin {
   override lazy val projectSettings = Seq(
     Keys.commands += FlakyCommand.flaky,
     flakySlackHook := None,
-    flakyTask := Seq(Keys.test in Test)
+    flakyTask := Seq(Keys.test in Test),
+    flakyReportsDir := "flaky-test-reports",
+    flakyAdditionalFiles := List.empty[File]
   )
 
 }

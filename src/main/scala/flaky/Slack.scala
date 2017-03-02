@@ -12,10 +12,8 @@ import scala.util.{Failure, Success, Try}
 object Slack {
 
   val escapedBackslash = """\\\""""
-  val slackReportFile = new File("target/flaky-report/slack.json")
 
-
-  def render(projectName:String, flaky: List[FlakyTest]): String = {
+  def render(projectName: String, flaky: List[FlakyTest]): String = {
     if (flaky.exists(_.failures > 0)) {
       renderFailed(projectName, flaky)
     } else {
@@ -23,7 +21,7 @@ object Slack {
     }
   }
 
-  def renderNoFailures(projectName:String, flaky: List[FlakyTest]): String = {
+  def renderNoFailures(projectName: String, flaky: List[FlakyTest]): String = {
     //can use lib for message formatting https://github.com/gilbertw1/slack-scala-client/blob/master/src/main/scala/slack/models/package.scala
     val timestamp = System.currentTimeMillis()
     val summaryAttachment =
@@ -42,7 +40,7 @@ object Slack {
     summaryAttachment
   }
 
-  def renderFailed(projectName:String, flaky: List[FlakyTest]): String = {
+  def renderFailed(projectName: String, flaky: List[FlakyTest]): String = {
     val failedCount = flaky.count(_.failures > 0)
     val flakyText = flaky
       .filter(_.failures > 0)
@@ -120,11 +118,14 @@ object Slack {
     msg
   }
 
-  def send(webHook: String, jsonMsg: String, log: Logger): Unit = {
+  def send(webHook: String, jsonMsg: String, log: Logger, targetDir: File): Unit = {
     log.info("Sending report to slack")
     log.debug("Dumping slack msg to file")
-    new PrintWriter(slackReportFile) {
-      write(jsonMsg); close()
+    val file = new File(targetDir, "slack.json")
+    println(s"Creating slack file ${file.getAbsolutePath}")
+    new PrintWriter(file) {
+      write(jsonMsg)
+      close()
     }
 
     val send: Try[Unit] = Try {

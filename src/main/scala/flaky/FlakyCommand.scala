@@ -1,23 +1,25 @@
 package flaky
 
-
+import flaky.FlakyPlugin._
 import sbt._
 
 object FlakyCommand {
 
-  //TODO settingKey
-  val testReports = new java.io.File("./target/test-reports")
-  //TODO settingKey
-  val dir = new java.io.File("./target/flaky-report")
-  //TODO settingKey
-  val logFiles = List("./target/test.log", "./target/test.log.xml")
-
   //TODO run testOnly instead of test
   def flaky: Command = Command("flaky")(parser) { (state, args) =>
+    val targetDir = Project.extract(state).get(Keys.target)
+
+    //TODO settingKey
+    val testReports = new File(targetDir, "test-reports")
+
+    val flakyReportsDir = new File(targetDir, Project.extract(state).get(autoImport.flakyReportsDir))
+    val logFiles = Project.extract(state).get(autoImport.flakyAdditionalFiles)
+    val moveFilesF = moveFiles(flakyReportsDir, testReports, logFiles) _
+
     state.log.info(s"Executing flaky command")
-//    val targetDir = Project.extract(state).get(Keys.target)
-    val slackHook: Option[String] = Project.extract(state).get(FlakyPlugin.autoImport.flakySlackHook)
-    val taskKeys: Seq[TaskKey[Unit]] = Project.extract(state).get(FlakyPlugin.autoImport.flakyTask)
+
+    val slackHook: Option[String] = Project.extract(state).get(autoImport.flakySlackHook)
+    val taskKeys: Seq[TaskKey[Unit]] = Project.extract(state).get(autoImport.flakyTask)
 
     case class TimeReport(times: Int, duration: Long) {
       def estimate(timesLeft: Int): String = {
@@ -30,7 +32,7 @@ object FlakyCommand {
         s"$r times"
       }
     }
-    dir.mkdirs()
+    flakyReportsDir.mkdirs()
 
     val start = System.currentTimeMillis
 
@@ -39,7 +41,7 @@ object FlakyCommand {
         for (i <- 1 to count) {
           state.log.info(s"Running tests: $i")
           taskKeys.foreach(taskKey => Project.runTask(taskKey, state))
-          moveFiles(i, logFiles)
+          moveFilesF(i)
           val timeReport = TimeReport(i, System.currentTimeMillis - start)
           state.log.info(s"Test iteration $i finished. ETA: ${timeReport.estimate(count - i)}")
         }
@@ -49,7 +51,7 @@ object FlakyCommand {
         while (System.currentTimeMillis < end) {
           state.log.info(s"Running tests: $i")
           taskKeys.foreach(taskKey => Project.runTask(taskKey, state))
-          moveFiles(i, logFiles)
+          moveFilesF(i)
           val timeReport = TimeReport(i, System.currentTimeMillis - start)
           val timeLeft = end - System.currentTimeMillis
           state.log.info(s"Test iteration $i finished. ETA: ${timeLeft / 1000}s [${timeReport.estimateCountIn(timeLeft)}]")
@@ -65,20 +67,18 @@ object FlakyCommand {
           if (Flaky.isFailed(testReports)) {
             foundFail = true
           }
-          moveFiles(i, logFiles)
+          moveFilesF(i)
           i = i + 1
         }
 
     }
-    //TODO use dir from task config
-    val report = Flaky.createReport()
+    val report = Flaky.createReport(flakyReportsDir)
     val name = Project.extract(state).get(sbt.Keys.name)
     state.log.info(TextReport.render(name, report))
     slackHook.foreach { hookId =>
       val slackMsg = Slack.render(name, report)
-      Slack.send(hookId, slackMsg, state.log)
+      Slack.send(hookId, slackMsg, state.log, flakyReportsDir)
     }
-
     state
   }
 
@@ -98,13 +98,13 @@ object FlakyCommand {
     times | duration | firstFailure
   }
 
-  private def moveFiles(iteration: Int, logFiles: List[String]): Unit = {
-    val iterationDir = new java.io.File(dir, s"$iteration")
+  private def moveFiles(reportsDir: File, testReports: File, logFiles: List[File])(iteration: Int): Unit = {
+    val iterationDir = new File(reportsDir, s"$iteration")
     if (iterationDir.exists()) {
       iterationDir.delete()
     }
     testReports.renameTo(iterationDir)
-    logFiles.foreach(f => new File(f).renameTo(new File(iterationDir, new File(f).getName)))
+    logFiles.foreach(f => f.renameTo(new File(iterationDir, f.getName)))
   }
 }
 
