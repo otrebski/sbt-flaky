@@ -6,7 +6,7 @@ script:
 scala:
   - 2.10.6
 jdk:
-  - openjdk8
+  - oraclejdk8
 sudo: false
 notifications:
   email:
