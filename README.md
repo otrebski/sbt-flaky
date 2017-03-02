@@ -72,6 +72,12 @@ ExampleSpec: A Stack should fail randomly failed in runs: 119, 120, 154, 160, 16
 ExampleSpec: A Stack should fail randomly sometimes failed in runs: 113, 141, 160, 225, 283
 ```
 
+
+## Backing up log files from every test run
+To backup log files from every test run, specify list of files with property `flakyAdditionalFiles := List(new File("target/test.log")))` Example can be found here:
+
+https://github.com/otrebski/sbt-flaky/blob/master/src/sbt-test/sbt-flaky/moveAdditionalFiles/build.sbt
+
 ## Known issues
 
 If running a lot of tests for a many times you can get Out of memory error: `java.lang.OutOfMemoryError: Metaspace`. On report you will find flay test `(It is not a test)`.
@@ -91,6 +97,5 @@ Additionally, you can run tests in separate JVM
 - [X] Select custom task to run insead of `Test`
 - [ ] Generating report (HTML, XML or JSON)
 - [ ] Select single test (or test class) to run (like testOnly task)
-- [ ] Update readme after migration to plugin
 - [ ] Keeping track of history
 - [ ] Use results only from last runs.
