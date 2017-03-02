@@ -9,9 +9,9 @@ import scala.xml.XML
 
 class FlakySpec extends WordSpec with Matchers {
 
-  private val flakyReportDirSuccessful = new File("src/test/resources/flakyTestRuns/successful/target/flaky-report/")
+  private val flakyReportDirSuccessful = new File("./src/test/resources/flakyTestRuns/successful/target/flaky-report/")
   val successfulReport: Seq[FlakyTest] = Flaky.createReport(flakyReportDirSuccessful)
-  private val flakyReportDirWithFailures = new File("src/test/resources/flakyTestRuns/withFailures/target/flaky-report/")
+  private val flakyReportDirWithFailures = new File("./src/test/resources/flakyTestRuns/withFailures/target/flaky-report/")
   val failedReport: Seq[FlakyTest] = Flaky.createReport(flakyReportDirWithFailures)
 
   "Flaky" should {
