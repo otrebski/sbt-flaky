@@ -24,7 +24,6 @@ class FlakySpec extends WordSpec with Matchers {
 
     "create report based on run with failures" in {
       failedReport.size shouldBe 9
-      failedReport.foreach(println)
       failedReport.find(_.test == "A Stack should fail sometimes").map(_.failures()) shouldBe Some(1)
       failedReport.find(_.test == "A ForwardingActor should Forwards in a 2 huge chains").map(_.failures()) shouldBe Some(1)
     }

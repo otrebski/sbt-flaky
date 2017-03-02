@@ -122,7 +122,6 @@ object Slack {
     log.info("Sending report to slack")
     log.debug("Dumping slack msg to file")
     val file = new File(targetDir, "slack.json")
-    println(s"Creating slack file ${file.getAbsolutePath}")
     new PrintWriter(file) {
       write(jsonMsg)
       close()
