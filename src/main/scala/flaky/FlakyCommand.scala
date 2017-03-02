@@ -12,9 +12,9 @@ object FlakyCommand {
   //TODO run testOnly instead of test
   def flaky: Command = Command("flaky")(parser) { (state, args) =>
     state.log.info(s"Executing flaky command")
+//    val targetDir = Project.extract(state).get(Keys.target)
     val slackHook: Option[String] = Project.extract(state).get(FlakyPlugin.autoImport.flakySlackHook)
     val taskKeys: Seq[TaskKey[Unit]] = Project.extract(state).get(FlakyPlugin.autoImport.flakyTask)
-    state.log.info(s"Task keys: ${taskKeys.map(_.key.label).mkString(",")}")
 
     case class TimeReport(times: Int, duration: Long) {
       def estimate(timesLeft: Int): String = {

@@ -4,6 +4,10 @@ import sbt._
 
 object FlakyPlugin extends AutoPlugin {
 
+  override def requires: Plugins = {
+    sbt.plugins.JvmPlugin
+  }
+
   object autoImport {
     val flakySlackHook: SettingKey[Option[String]] = settingKey[Option[String]]("Slack web hook used to notify about test result")
     val flakyTask: SettingKey[Seq[TaskKey[Unit]]] = settingKey[Seq[TaskKey[Unit]]]("Tasks to run, by default test in Test")
