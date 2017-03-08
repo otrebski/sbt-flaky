@@ -83,9 +83,11 @@ ExampleSpec: A Stack should fail randomly sometimes failed in runs: 113, 141, 16
 ## Example slack notification
 
 Successful report example:
+
 ![Succeful report](screenshots/slack-successful.png)
 
 Failure report example:
+
 ![Failure report](screenshots/slack-failures.png)
 
 
