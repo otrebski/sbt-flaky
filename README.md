@@ -80,6 +80,13 @@ TestKitUsageSpec: A ForwardingActor should Forwards in a 2 huge chains failed in
 ExampleSpec: A Stack should fail randomly failed in runs: 119, 120, 154, 160, 169, 186, 196, 20, 229, 230, 235, 240, 262, 263, 5, 58, 65, 72, 86
 ExampleSpec: A Stack should fail randomly sometimes failed in runs: 113, 141, 160, 225, 283
 ```
+## Example slack notification
+
+Successful report example:
+![Succeful report](screenshots/slack-successful.png)
+
+Failure report example:
+![Failure report](screenshots/slack-failures.png)
 
 
 ## Backing up log files from every test run
