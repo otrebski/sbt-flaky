@@ -8,15 +8,22 @@ This project is proof of concept of flaky test detector SBT plugin. It can run t
 
 ## Installation
 
-:warning: Plugin is not deployed to repo yet ! :warning:
+:warning: Plugin is not linked to sbt-plugin-releases yet! :warning:, you have to add http://otrebski.bintray.com/sbt-plugins to your repos. Example usage can be found in [demo project](https://github.com/otrebski/sbt-flaky-demo) 
 
 Add plugin to project configuration `project/plugins.sbt` or global configuration `~/.sbt/0.13/plugins/plugins.sbt`
 ```scala
+resolvers += Resolver.url(
+  "flaky",
+  url("http://otrebski.bintray.com/sbt-plugins"))(
+  Resolver.ivyStylePatterns
+ )
+
 addSbtPlugin("pl.otrebski" % "sbt-flaky" % "0.1")
 ```
 Don't forget to enable plugin in `build.sbt`
 ```scala 
-enablePlugins(FlakyPlugin)
+lazy val library = (project in file("."))
+  .enablePlugins(FlakyPlugin)
 ```
 
 ## How to run
@@ -88,6 +95,9 @@ For example env `JAVA_OPTS="-XX:MaxMetaspaceSize=512m" sbt "flaky times=400"`
 
 Additionally, you can run tests in separate JVM
 
+
+## Example project
+Checkout this [example project](https://github.com/otrebski/sbt-flaky-demo) 
 
 # TODO
 - [x] Run tests X times
