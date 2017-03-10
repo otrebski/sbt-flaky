@@ -98,12 +98,9 @@ https://github.com/otrebski/sbt-flaky/blob/master/src/sbt-test/sbt-flaky/moveAdd
 
 ## Known issues
 
-If running a lot of tests for a many times you can get Out of memory error: `java.lang.OutOfMemoryError: Metaspace`. On report you will find flay test `(It is not a test)`.
-Try to tune JVM memory settings: `-XX:MaxMetaspaceSize=512m`
-For example env `JAVA_OPTS="-XX:MaxMetaspaceSize=512m" sbt "flaky times=400"`
+If running a lot of tests for a many times you can get Out of memory error: `java.lang.OutOfMemoryError: Metaspace`. On report you will find flaky test `(It is not a test)`. Best options and good practice is to run Tests in separate JVM (fork). Details can be found in [sbt documentation](http://www.scala-sbt.org/0.13/docs/Forking.html)
 
-Additionally, you can run tests in separate JVM
-
+The other cause of `(It is not a test)` on report is issue https://github.com/scalatest/scalatest/issues/780
 
 ## Example project
 Checkout this [example project](https://github.com/otrebski/sbt-flaky-demo) 
@@ -114,9 +111,18 @@ Checkout this [example project](https://github.com/otrebski/sbt-flaky-demo)
 - [x] Run test until first failure
 - [x] Copy log file to run test iteration dir
 - [x] Execute webhook after tests (slack)
-- [X] Create SBT plugin
-- [X] Select custom task to run insead of `Test`
+- [x] Create SBT plugin
+- [x] Select custom task to run insead of `Test`
+- [ ] Disabling sending report to slack based on ENV variable (for running locally)
 - [ ] Generating report (HTML, XML or JSON)
 - [ ] Select single test (or test class) to run (like testOnly task)
 - [ ] Keeping track of history
+- [ ] Based on history show trends
 - [ ] Use results only from last runs.
+- [ ] Suppress output from tess and display nice progress with ETA
+- [ ] If project is using git, list changes since last run on report.
+- [ ] Add colors to console output
+
+
+# Merge request are welcome !
+ 
