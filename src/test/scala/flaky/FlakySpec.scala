@@ -10,17 +10,25 @@ import scala.xml.XML
 class FlakySpec extends WordSpec with Matchers {
 
   private val flakyReportDirSuccessful = new File("./src/test/resources/flakyTestRuns/successful/target/flaky-report/")
-  val successfulReport: Seq[FlakyTest] = Flaky.createReport(flakyReportDirSuccessful)
+  val successfulReport: Seq[FlakyTest] = Flaky.createReport(Seq("1", "2"), flakyReportDirSuccessful)
   private val flakyReportDirWithFailures = new File("./src/test/resources/flakyTestRuns/withFailures/target/flaky-report/")
-  val failedReport: Seq[FlakyTest] = Flaky.createReport(flakyReportDirWithFailures)
+  val failedReport: Seq[FlakyTest] = Flaky.createReport(Seq("1", "2", "3"), flakyReportDirWithFailures)
 
   "Flaky" should {
 
     "create report based on 2 successful runs" in {
       successfulReport.size shouldBe 9
+      successfulReport.head.totalRun shouldBe 2
       successfulReport should contain(FlakyTest("ExampleSpec", "A Stack should fail randomly often", 2, List.empty))
       successfulReport should contain(FlakyTest("TestKitUsageSpec", "A ForwardingActor should Forwards in a 2 huge chains", 2, List.empty))
     }
+
+    "create report based on 1 run and dir contains 2" in {
+      val successfulReport: Seq[FlakyTest] = Flaky.createReport(Seq("1"), flakyReportDirSuccessful)
+      successfulReport.size shouldBe 9
+      successfulReport.head.totalRun shouldBe 1
+    }
+
 
     "create report based on run with failures" in {
       failedReport.size shouldBe 9

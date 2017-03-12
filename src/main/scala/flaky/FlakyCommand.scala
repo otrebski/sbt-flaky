@@ -39,13 +39,15 @@ object FlakyCommand {
 
       val start = System.currentTimeMillis
 
-      args match {
+      val iterationNames = args match {
         case Times(count) =>
-          for (i <- 1 to count) {
+          val inclusive = 1 to count
+          for (i <- inclusive) {
             runTasks(state, i)
             val timeReport = TimeReport(i, System.currentTimeMillis - start)
             state.log.info(s"${scala.Console.GREEN}Test iteration $i finished. ETA: ${timeReport.estimate(count - i)}${scala.Console.RESET}")
           }
+          inclusive.map(_.toString).toList
         case Duration(minutes) =>
           var i = 1
           val end = start + minutes.toLong * 60 * 1000
@@ -57,6 +59,7 @@ object FlakyCommand {
             state.log.info(s"${scala.Console.GREEN}Test iteration $i finished. ETA: ${formattedSeconds}s [${timeReport.estimateCountIn(timeLeft)}] ${scala.Console.RESET}")
             i = i + 1
           }
+          (1 to i).map(_.toString).toList
         case FirstFailure =>
           var i = 1
           var foundFail = false
@@ -67,9 +70,9 @@ object FlakyCommand {
             }
             i = i + 1
           }
-
+          (1 to i).map(_.toString).toList
       }
-      val report = Flaky.createReport(flakyReportsDir)
+      val report = Flaky.createReport(iterationNames, flakyReportsDir)
       val name = Project.extract(state).get(sbt.Keys.name)
       state.log.info(TextReport.render(name, report))
       slackHook.foreach { hookId =>

@@ -86,8 +86,11 @@ object Flaky {
     }.toList
   }
 
-  def createReport(flakyDir: File = new File("target/flaky-report")): List[FlakyTest] = {
-    val testRunDirs = flakyDir.listFiles.filter(_.isDirectory).toList
+  def createReport(iterationNames: Seq[String], flakyDir: File = new File("target/flaky-report")): List[FlakyTest] = {
+    val testRunDirs = flakyDir.listFiles
+      .filter(_.isDirectory)
+      .filter(f => iterationNames.contains(f.getName))
+      .toList
     val testRuns = testRunDirs.map { dir =>
       val testCases = processFolder(dir)
       TestRun(s"${dir.getName}", testCases)

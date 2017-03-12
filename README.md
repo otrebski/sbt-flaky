@@ -126,7 +126,7 @@ Checkout this [example project](https://github.com/otrebski/sbt-flaky-demo)
 - [ ] Select single test (or test class) to run (like testOnly task)
 - [ ] Keeping track of history
 - [ ] Based on history show trends
-- [ ] Use results only from last runs.
+- [x] Use results only from last runs. Ignore junk dirs from other `flaky` run
 - [x] [Suppress output from test](https://github.com/otrebski/sbt-flaky/issues/2) 
 - [x] Display nice progress with ETA
 - [ ] If project is using git, list changes since last run on report.
