@@ -128,7 +128,7 @@ Checkout this [example project](https://github.com/otrebski/sbt-flaky-demo)
 - [ ] Based on history show trends
 - [ ] Use results only from last runs.
 - [x] [Suppress output from test](https://github.com/otrebski/sbt-flaky/issues/2) 
-- [ ] Display nice progress with ETA
+- [x] Display nice progress with ETA
 - [ ] If project is using git, list changes since last run on report.
 - [ ] Add colors to console output
 

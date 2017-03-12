@@ -22,7 +22,7 @@ object FlakyCommand {
 
       def runTasks(state: State, runIndex: Int) = {
         state.log.info(s"Running tests: $runIndex")
-        taskKeys.foreach{ taskKey =>
+        taskKeys.foreach { taskKey =>
           val extracted = Project extract state
           import extracted._
           import sbt.Keys.logLevel
@@ -34,17 +34,7 @@ object FlakyCommand {
 
       state.log.info(s"Executing flaky command")
 
-      case class TimeReport(times: Int, duration: Long) {
-        def estimate(timesLeft: Int): String = {
-          val r = (duration / times) * timesLeft
-          s"${r / 1000}s"
-        }
 
-        def estimateCountIn(timeLeft: Long): String = {
-          val r = timeLeft / (duration / times)
-          s"$r times"
-        }
-      }
       flakyReportsDir.mkdirs()
 
       val start = System.currentTimeMillis
@@ -54,7 +44,7 @@ object FlakyCommand {
           for (i <- 1 to count) {
             runTasks(state, i)
             val timeReport = TimeReport(i, System.currentTimeMillis - start)
-            state.log.info(s"Test iteration $i finished. ETA: ${timeReport.estimate(count - i)}")
+            state.log.info(s"${scala.Console.GREEN}Test iteration $i finished. ETA: ${timeReport.estimate(count - i)}${scala.Console.RESET}")
           }
         case Duration(minutes) =>
           var i = 1
@@ -63,7 +53,8 @@ object FlakyCommand {
             runTasks(state, i)
             val timeReport = TimeReport(i, System.currentTimeMillis - start)
             val timeLeft = end - System.currentTimeMillis
-            state.log.info(s"Test iteration $i finished. ETA: ${timeLeft / 1000}s [${timeReport.estimateCountIn(timeLeft)}]")
+            val formattedSeconds = TimeReport.formatSeconds(timeLeft / 1000)
+            state.log.info(s"${scala.Console.GREEN}Test iteration $i finished. ETA: ${formattedSeconds}s [${timeReport.estimateCountIn(timeLeft)}] ${scala.Console.RESET}")
             i = i + 1
           }
         case FirstFailure =>
