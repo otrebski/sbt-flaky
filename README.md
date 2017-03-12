@@ -96,6 +96,14 @@ To backup log files from every test run, specify list of files with property `fl
 
 https://github.com/otrebski/sbt-flaky/blob/master/src/sbt-test/sbt-flaky/moveAdditionalFiles/build.sbt
 
+## Reduce amount of console output
+If project contains a lot of tests it can produce huge output if test is run multiple times. To reduce amount of output use `flakyLogLevelInTask` to change logger level when running flaky command.
+```scala
+flakyLogLevelInTask := sbt.Level.Info
+```
+Test classes and application can produce output to console. Consider changing log levels for tests.
+
+
 ## Known issues
 
 If running a lot of tests for a many times you can get Out of memory error: `java.lang.OutOfMemoryError: Metaspace`. On report you will find flaky test `(It is not a test)`. Best options and good practice is to run Tests in separate JVM (fork). Details can be found in [sbt documentation](http://www.scala-sbt.org/0.13/docs/Forking.html)
@@ -119,7 +127,8 @@ Checkout this [example project](https://github.com/otrebski/sbt-flaky-demo)
 - [ ] Keeping track of history
 - [ ] Based on history show trends
 - [ ] Use results only from last runs.
-- [ ] Suppress output from tess and display nice progress with ETA
+- [x] [Suppress output from test](https://github.com/otrebski/sbt-flaky/issues/2) 
+- [ ] Display nice progress with ETA
 - [ ] If project is using git, list changes since last run on report.
 - [ ] Add colors to console output
 
