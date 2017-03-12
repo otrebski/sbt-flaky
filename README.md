@@ -130,7 +130,7 @@ Checkout this [example project](https://github.com/otrebski/sbt-flaky-demo)
 - [x] [Suppress output from test](https://github.com/otrebski/sbt-flaky/issues/2) 
 - [x] Display nice progress with ETA
 - [ ] If project is using git, list changes since last run on report.
-- [ ] Add colors to console output
+- [x] Add colors to console output
 
 
 # Merge request are welcome !
