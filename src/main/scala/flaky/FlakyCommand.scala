@@ -27,7 +27,6 @@ object FlakyCommand {
           import extracted._
           import sbt.Keys.logLevel
           val newState = append(Seq(logLevel in taskKey := logLevelInTask), state)
-          state.log.info(s"Running task with newState, level: $logLevelInTask")
           Project.runTask(taskKey, newState, checkCycles = true)
         }
         moveFilesF(runIndex)
