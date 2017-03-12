@@ -28,7 +28,5 @@ bintrayPackageLabels := Seq("sbt", "flaky-test")
 
 bintrayRepository := "otrebski"
 
-licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
-
-resolvers += Resolver.typesafeRepo("releases")
+licenses += ("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html"))
 

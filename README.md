@@ -8,15 +8,22 @@ This project is proof of concept of flaky test detector SBT plugin. It can run t
 
 ## Installation
 
-:warning: Plugin is not deployed to repo yet ! :warning:
+:warning: Plugin is not linked to sbt-plugin-releases yet! :warning:, you have to add http://otrebski.bintray.com/sbt-plugins to your repos. Example usage can be found in [demo project](https://github.com/otrebski/sbt-flaky-demo) 
 
 Add plugin to project configuration `project/plugins.sbt` or global configuration `~/.sbt/0.13/plugins/plugins.sbt`
 ```scala
+resolvers += Resolver.url(
+  "flaky",
+  url("http://otrebski.bintray.com/sbt-plugins"))(
+  Resolver.ivyStylePatterns
+ )
+
 addSbtPlugin("pl.otrebski" % "sbt-flaky" % "0.1")
 ```
 Don't forget to enable plugin in `build.sbt`
 ```scala 
-enablePlugins(FlakyPlugin)
+lazy val library = (project in file("."))
+  .enablePlugins(FlakyPlugin)
 ```
 
 ## How to run
@@ -73,6 +80,15 @@ TestKitUsageSpec: A ForwardingActor should Forwards in a 2 huge chains failed in
 ExampleSpec: A Stack should fail randomly failed in runs: 119, 120, 154, 160, 169, 186, 196, 20, 229, 230, 235, 240, 262, 263, 5, 58, 65, 72, 86
 ExampleSpec: A Stack should fail randomly sometimes failed in runs: 113, 141, 160, 225, 283
 ```
+## Example slack notification
+
+Successful report example:
+
+![Succeful report](screenshots/slack-successful.png)
+
+Failure report example:
+
+![Failure report](screenshots/slack-failures.png)
 
 
 ## Backing up log files from every test run
@@ -82,12 +98,12 @@ https://github.com/otrebski/sbt-flaky/blob/master/src/sbt-test/sbt-flaky/moveAdd
 
 ## Known issues
 
-If running a lot of tests for a many times you can get Out of memory error: `java.lang.OutOfMemoryError: Metaspace`. On report you will find flay test `(It is not a test)`.
-Try to tune JVM memory settings: `-XX:MaxMetaspaceSize=512m`
-For example env `JAVA_OPTS="-XX:MaxMetaspaceSize=512m" sbt "flaky times=400"`
+If running a lot of tests for a many times you can get Out of memory error: `java.lang.OutOfMemoryError: Metaspace`. On report you will find flaky test `(It is not a test)`. Best options and good practice is to run Tests in separate JVM (fork). Details can be found in [sbt documentation](http://www.scala-sbt.org/0.13/docs/Forking.html)
 
-Additionally, you can run tests in separate JVM
+The other cause of `(It is not a test)` on report is issue https://github.com/scalatest/scalatest/issues/780
 
+## Example project
+Checkout this [example project](https://github.com/otrebski/sbt-flaky-demo) 
 
 # TODO
 - [x] Run tests X times
@@ -95,9 +111,18 @@ Additionally, you can run tests in separate JVM
 - [x] Run test until first failure
 - [x] Copy log file to run test iteration dir
 - [x] Execute webhook after tests (slack)
-- [X] Create SBT plugin
-- [X] Select custom task to run insead of `Test`
+- [x] Create SBT plugin
+- [x] Select custom task to run insead of `Test`
+- [ ] Disabling sending report to slack based on ENV variable (for running locally)
 - [ ] Generating report (HTML, XML or JSON)
 - [ ] Select single test (or test class) to run (like testOnly task)
 - [ ] Keeping track of history
+- [ ] Based on history show trends
 - [ ] Use results only from last runs.
+- [ ] Suppress output from tess and display nice progress with ETA
+- [ ] If project is using git, list changes since last run on report.
+- [ ] Add colors to console output
+
+
+# Merge request are welcome !
+ 
