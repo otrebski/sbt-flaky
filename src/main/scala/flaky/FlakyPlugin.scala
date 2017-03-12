@@ -13,6 +13,7 @@ object FlakyPlugin extends AutoPlugin {
     val flakyTask: SettingKey[Seq[TaskKey[Unit]]] = settingKey[Seq[TaskKey[Unit]]]("Tasks to run, by default test in Test")
     val flakyReportsDir: SettingKey[String] = settingKey[String]("Name of folder in target dir to store test reports and additional files")
     val flakyAdditionalFiles: SettingKey[List[File]] = settingKey[List[File]]("List of additional files to backup after test run (for example log files)")
+    val flakyLogLevelInTask: SettingKey[sbt.Level.Value] = settingKey[sbt.Level.Value]("SBT logger level for tasks")
   }
 
   import autoImport._
@@ -22,7 +23,8 @@ object FlakyPlugin extends AutoPlugin {
     flakySlackHook := None,
     flakyTask := Seq(Keys.test in Test),
     flakyReportsDir := "flaky-test-reports",
-    flakyAdditionalFiles := List.empty[File]
+    flakyAdditionalFiles := List.empty[File],
+    flakyLogLevelInTask := sbt.Level.Info
   )
 
 }

@@ -6,80 +6,87 @@ import sbt._
 object FlakyCommand {
 
   //TODO run testOnly instead of test
-  def flaky: Command = Command("flaky")(parser) { (state, args) =>
-    val targetDir = Project.extract(state).get(Keys.target)
+  def flaky: Command = Command("flaky")(parser) {
+    (state, args) =>
+      val targetDir = Project.extract(state).get(Keys.target)
 
-    //TODO settingKey
-    val testReports = new File(targetDir, "test-reports")
+      //TODO settingKey
+      val testReports = new File(targetDir, "test-reports")
 
-    val flakyReportsDir = new File(targetDir, Project.extract(state).get(autoImport.flakyReportsDir))
-    val logFiles = Project.extract(state).get(autoImport.flakyAdditionalFiles)
-    val moveFilesF = moveFiles(flakyReportsDir, testReports, logFiles) _
+      val flakyReportsDir = new File(targetDir, Project.extract(state).get(autoImport.flakyReportsDir))
+      val logFiles = Project.extract(state).get(autoImport.flakyAdditionalFiles)
+      val logLevelInTask = Project.extract(state).get(autoImport.flakyLogLevelInTask)
+      val slackHook: Option[String] = Project.extract(state).get(autoImport.flakySlackHook)
+      val taskKeys: Seq[TaskKey[Unit]] = Project.extract(state).get(autoImport.flakyTask)
+      val moveFilesF = moveFiles(flakyReportsDir, testReports, logFiles) _
 
-    state.log.info(s"Executing flaky command")
-
-    val slackHook: Option[String] = Project.extract(state).get(autoImport.flakySlackHook)
-    val taskKeys: Seq[TaskKey[Unit]] = Project.extract(state).get(autoImport.flakyTask)
-
-    case class TimeReport(times: Int, duration: Long) {
-      def estimate(timesLeft: Int): String = {
-        val r = (duration / times) * timesLeft
-        s"${r / 1000}s"
+      def runTasks(state: State, runIndex: Int) = {
+        state.log.info(s"Running tests: $runIndex")
+        taskKeys.foreach{ taskKey =>
+          val extracted = Project extract state
+          import extracted._
+          import sbt.Keys.logLevel
+          val newState = append(Seq(logLevel in taskKey := logLevelInTask), state)
+          state.log.info(s"Running task with newState, level: $logLevelInTask")
+          Project.runTask(taskKey, newState, checkCycles = true)
+        }
+        moveFilesF(runIndex)
       }
 
-      def estimateCountIn(timeLeft: Long): String = {
-        val r = timeLeft / (duration / times)
-        s"$r times"
+      state.log.info(s"Executing flaky command")
+
+      case class TimeReport(times: Int, duration: Long) {
+        def estimate(timesLeft: Int): String = {
+          val r = (duration / times) * timesLeft
+          s"${r / 1000}s"
+        }
+
+        def estimateCountIn(timeLeft: Long): String = {
+          val r = timeLeft / (duration / times)
+          s"$r times"
+        }
       }
-    }
-    flakyReportsDir.mkdirs()
+      flakyReportsDir.mkdirs()
 
-    val start = System.currentTimeMillis
+      val start = System.currentTimeMillis
 
-    args match {
-      case Times(count) =>
-        for (i <- 1 to count) {
-          state.log.info(s"Running tests: $i")
-          taskKeys.foreach(taskKey => Project.runTask(taskKey, state))
-          moveFilesF(i)
-          val timeReport = TimeReport(i, System.currentTimeMillis - start)
-          state.log.info(s"Test iteration $i finished. ETA: ${timeReport.estimate(count - i)}")
-        }
-      case Duration(minutes) =>
-        var i = 1
-        val end = start + minutes.toLong * 60 * 1000
-        while (System.currentTimeMillis < end) {
-          state.log.info(s"Running tests: $i")
-          taskKeys.foreach(taskKey => Project.runTask(taskKey, state))
-          moveFilesF(i)
-          val timeReport = TimeReport(i, System.currentTimeMillis - start)
-          val timeLeft = end - System.currentTimeMillis
-          state.log.info(s"Test iteration $i finished. ETA: ${timeLeft / 1000}s [${timeReport.estimateCountIn(timeLeft)}]")
-          i = i + 1
-        }
-      case FirstFailure =>
-        var i = 1
-        var foundFail = false
-        while (!foundFail) {
-          state.log.info(s"Running tests: $i")
-
-          taskKeys.foreach(taskKey => Project.runTask(taskKey, state))
-          if (Flaky.isFailed(testReports)) {
-            foundFail = true
+      args match {
+        case Times(count) =>
+          for (i <- 1 to count) {
+            runTasks(state, i)
+            val timeReport = TimeReport(i, System.currentTimeMillis - start)
+            state.log.info(s"Test iteration $i finished. ETA: ${timeReport.estimate(count - i)}")
           }
-          moveFilesF(i)
-          i = i + 1
-        }
+        case Duration(minutes) =>
+          var i = 1
+          val end = start + minutes.toLong * 60 * 1000
+          while (System.currentTimeMillis < end) {
+            runTasks(state, i)
+            val timeReport = TimeReport(i, System.currentTimeMillis - start)
+            val timeLeft = end - System.currentTimeMillis
+            state.log.info(s"Test iteration $i finished. ETA: ${timeLeft / 1000}s [${timeReport.estimateCountIn(timeLeft)}]")
+            i = i + 1
+          }
+        case FirstFailure =>
+          var i = 1
+          var foundFail = false
+          while (!foundFail) {
+            runTasks(state, i)
+            if (Flaky.isFailed(testReports)) {
+              foundFail = true
+            }
+            i = i + 1
+          }
 
-    }
-    val report = Flaky.createReport(flakyReportsDir)
-    val name = Project.extract(state).get(sbt.Keys.name)
-    state.log.info(TextReport.render(name, report))
-    slackHook.foreach { hookId =>
-      val slackMsg = Slack.render(name, report)
-      Slack.send(hookId, slackMsg, state.log, flakyReportsDir)
-    }
-    state
+      }
+      val report = Flaky.createReport(flakyReportsDir)
+      val name = Project.extract(state).get(sbt.Keys.name)
+      state.log.info(TextReport.render(name, report))
+      slackHook.foreach { hookId =>
+        val slackMsg = Slack.render(name, report)
+        Slack.send(hookId, slackMsg, state.log, flakyReportsDir)
+      }
+      state
   }
 
   private def parser(state: State) = {
