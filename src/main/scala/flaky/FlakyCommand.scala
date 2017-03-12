@@ -2,11 +2,18 @@ package flaky
 
 import flaky.FlakyPlugin._
 import sbt._
+import sbt.complete.Parser
 
 object FlakyCommand {
 
+  def flakyOnly: Command = Command("flakyOnly")(parserFlaky){
+    (state, args) =>
+      Project.extract(state).get(Keys.testOnly.)
+      state
+  }
+
   //TODO run testOnly instead of test
-  def flaky: Command = Command("flaky")(parser) {
+  def flaky: Command = Command("flaky")(parserFlaky) {
     (state, args) =>
       val targetDir = Project.extract(state).get(Keys.target)
 
@@ -79,7 +86,7 @@ object FlakyCommand {
       state
   }
 
-  private def parser(state: State) = {
+  private def parserFlaky(state: State) = {
     import sbt.complete.DefaultParsers._
     val times = (Space ~> "times=" ~> NatBasic)
       .examples("times=5", "times=25", "times=100")
@@ -93,6 +100,42 @@ object FlakyCommand {
       .map { _ => FirstFailure }
 
     times | duration | firstFailure
+  }
+
+  private def parserFlakyOnly(state: State) = {
+    import sbt.complete.DefaultParsers._
+    val times = (Space ~> "times=" ~> NatBasic )
+      .examples("times=5", "times=25", "times=100")
+      .map { a => Times(a) }
+    val duration = (Space ~> "duration=" ~> NatBasic)
+      .examples("duration=15", "duration=60")
+      .map { a => Duration(a.toLong) }
+
+    val firstFailure = (Space ~> "firstFail")
+      .examples("firstFail")
+      .map { _ => FirstFailure }
+
+    times | duration | firstFailure
+  }
+
+  //https://github.com/sbt/sbt/blob/ef56db9885449d47f8ef200986bc9517b8cf2085/main/src/main/scala/sbt/Defaults.scala
+  def testOnlyParser: (State, Seq[String]) => Parser[(Seq[String], Seq[String])] =
+  { (state, tests) =>
+    import sbt.complete.DefaultParsers._
+    val selectTests = distinctParser(tests.toSet, true)
+    val options = (token(Space) ~> token("--") ~> spaceDelimited("<option>")) ?? Nil
+    selectTests ~ options
+  }
+
+  private def distinctParser(exs: Set[String], raw: Boolean): Parser[Seq[String]] =
+  {
+    import sbt.complete.DefaultParsers._, Parser.and
+    val base = token(Space) ~> token(and(NotSpace, not("--", "Unexpected: ---")) examples exs)
+    val recurse = base flatMap { ex =>
+      val (matching, notMatching) = exs.partition(GlobFilter(ex).accept _)
+      distinctParser(notMatching, raw) map { result => if (raw) ex +: result else matching.toSeq ++ result }
+    }
+    recurse ?? Nil
   }
 
   private def moveFiles(reportsDir: File, testReports: File, logFiles: List[File])(iteration: Int): Unit = {
