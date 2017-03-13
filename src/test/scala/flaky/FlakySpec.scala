@@ -10,30 +10,30 @@ import scala.xml.XML
 class FlakySpec extends WordSpec with Matchers {
 
   private val flakyReportDirSuccessful = new File("./src/test/resources/flakyTestRuns/successful/target/flaky-report/")
-  val successfulReport: Seq[FlakyTest] = Flaky.createReport(Seq("1", "2"), flakyReportDirSuccessful)
+  val successfulReport = Flaky.createReport("P1", TimeDetails(0, 100), Seq("1", "2"), flakyReportDirSuccessful)
   private val flakyReportDirWithFailures = new File("./src/test/resources/flakyTestRuns/withFailures/target/flaky-report/")
-  val failedReport: Seq[FlakyTest] = Flaky.createReport(Seq("1", "2", "3"), flakyReportDirWithFailures)
+  val failedReport = Flaky.createReport("P1", TimeDetails(0, 100), Seq("1", "2", "3"), flakyReportDirWithFailures)
 
   "Flaky" should {
 
     "create report based on 2 successful runs" in {
-      successfulReport.size shouldBe 9
-      successfulReport.head.totalRun shouldBe 2
-      successfulReport should contain(FlakyTest("ExampleSpec", "A Stack should fail randomly often", 2, List.empty))
-      successfulReport should contain(FlakyTest("TestKitUsageSpec", "A ForwardingActor should Forwards in a 2 huge chains", 2, List.empty))
+      successfulReport.flakyTests.size shouldBe 9
+      successfulReport.flakyTests.head.totalRun shouldBe 2
+      successfulReport.flakyTests should contain(FlakyTest("ExampleSpec", "A Stack should fail randomly often", 2, List.empty))
+      successfulReport.flakyTests should contain(FlakyTest("TestKitUsageSpec", "A ForwardingActor should Forwards in a 2 huge chains", 2, List.empty))
     }
 
     "create report based on 1 run and dir contains 2" in {
-      val successfulReport: Seq[FlakyTest] = Flaky.createReport(Seq("1"), flakyReportDirSuccessful)
-      successfulReport.size shouldBe 9
-      successfulReport.head.totalRun shouldBe 1
+      val successfulReport = Flaky.createReport("P1", TimeDetails(0, 100), Seq("1"), flakyReportDirSuccessful)
+      successfulReport.flakyTests.size shouldBe 9
+      successfulReport.flakyTests.head.totalRun shouldBe 1
     }
 
 
     "create report based on run with failures" in {
-      failedReport.size shouldBe 9
-      failedReport.find(_.test == "A Stack should fail sometimes").map(_.failures()) shouldBe Some(1)
-      failedReport.find(_.test == "A ForwardingActor should Forwards in a 2 huge chains").map(_.failures()) shouldBe Some(1)
+      failedReport.flakyTests.size shouldBe 9
+      failedReport.flakyTests.find(_.test == "A Stack should fail sometimes").map(_.failures()) shouldBe Some(1)
+      failedReport.flakyTests.find(_.test == "A ForwardingActor should Forwards in a 2 huge chains").map(_.failures()) shouldBe Some(1)
     }
 
     "find failed tests in empty reports" in {

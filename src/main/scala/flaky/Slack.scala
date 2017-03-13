@@ -13,17 +13,23 @@ object Slack {
 
   val escapedBackslash = """\\\""""
 
-  def render(projectName: String, flaky: List[FlakyTest]): String = {
-    if (flaky.exists(_.failures > 0)) {
-      renderFailed(projectName, flaky)
+  def render(flakyTestReport: FlakyTestReport): String = {
+    if (flakyTestReport.flakyTests.exists(_.failures > 0)) {
+      renderFailed(flakyTestReport)
     } else {
-      renderNoFailures(projectName, flaky)
+      renderNoFailures(flakyTestReport)
     }
   }
 
-  def renderNoFailures(projectName: String, flaky: List[FlakyTest]): String = {
+  def renderNoFailures(flakyTestReport: FlakyTestReport): String = {
     //can use lib for message formatting https://github.com/gilbertw1/slack-scala-client/blob/master/src/main/scala/slack/models/package.scala
-    val timestamp = System.currentTimeMillis()
+    val timestamp = flakyTestReport.timeDetails.start
+    val projectName = flakyTestReport.projectName
+    val flaky = flakyTestReport.flakyTests
+    val duration = flakyTestReport.timeDetails.duration()
+    val timeSpend = TimeReport.formatSeconds(duration/1000)
+    val timeSpendPerIteration = TimeReport.formatSeconds((duration/flakyTestReport.testRuns.size)/1000)
+
     val summaryAttachment =
       s"""
          |{
@@ -32,7 +38,7 @@ object Slack {
          |  "pretext": "Flaky test report for $projectName",
          |  "author_name": "sbt-flaky",
          |  "title": "Flaky test result",
-         |  "text": "All tests are correct [${flaky.headOption.map(f => f.totalRun).getOrElse(0)} runs]",
+         |  "text": "All tests are correct [${flaky.headOption.map(f => f.totalRun).getOrElse(0)} runs]\\nTest were running for $timeSpend [$timeSpendPerIteration/iteration]",
          |  "footer": "sbt-flaky",
          |  "ts": $timestamp
          |}
@@ -40,8 +46,16 @@ object Slack {
     summaryAttachment
   }
 
-  def renderFailed(projectName: String, flaky: List[FlakyTest]): String = {
+  def renderFailed(flakyTestReport: FlakyTestReport): String = {
+    val timestamp = flakyTestReport.timeDetails.start
+    val projectName = flakyTestReport.projectName
+    val flaky = flakyTestReport.flakyTests
     val failedCount = flaky.count(_.failures > 0)
+    val duration = flakyTestReport.timeDetails.duration()
+    val timeSpend = TimeReport.formatSeconds(duration/1000)
+    val timeSpendPerIteration = TimeReport.formatSeconds((duration/flakyTestReport.testRuns.size)/1000)
+
+
     val flakyText = flaky
       .filter(_.failures > 0)
       .groupBy(_.clazz)
@@ -49,21 +63,19 @@ object Slack {
         val clazz = kv._1
         val list = kv._2
         val r = list
-          .map(flaky => f"* ${flaky.test} ${flaky.failures * 100f / flaky.totalRun}%.2f%%")
+          .map(flaky => f":red_circle: *${flaky.failures * 100f / flaky.totalRun}%.2f%%* ${flaky.test} ")
           .mkString("\\n")
-        s"$clazz:\\n$r"
+        s"*$clazz*:\\n$r"
       }.mkString("\\n")
-
-    val timestamp = System.currentTimeMillis
 
     val summaryAttachment =
       s"""
          |{
          |  "fallback": "Flaky test result for $projectName",
          |  "color": "danger",
-         |  "pretext": "Flaky test report for $projectName",
+         |  "pretext": "Flaky test report for $projectName. Test were run ${flakyTestReport.testRuns.size} times",
          |  "author_name": "sbt-flaky",
-         |  "title": "Flaky test result: $failedCount of ${flaky.size}",
+         |  "title": "Flaky test result: $failedCount of ${flaky.size}\\nTest were running for $timeSpend [$timeSpendPerIteration/iteration]",
          |  "text": "$flakyText",
          |  "footer": "sbt-flaky",
          |  "ts": $timestamp
@@ -87,7 +99,8 @@ object Slack {
                   .groupBy(identity).mapValues(_.size)
                   .map((a) => s" * ${a._2} => ${a._1}")
                   .mkString("\\n")
-                s"$test:\\n$messagesOnFail"
+                val failedIterations = ft.failedRuns.map(_.runName).mkString(",")
+                s":poop: $test:\\nFailed in test runs: $failedIterations\\n$messagesOnFail"
               }
           }
 
@@ -95,7 +108,7 @@ object Slack {
            |{
            |  "fallback": "Flaky test result for $clazzTestName",
            |  "color": "danger",
-           |  "pretext": "Report for $clazzTestName",
+           |  "pretext": "Report for *$clazzTestName*",
            |  "author_name": "sbt-flaky",
            |  "title": "Flaky test details for $clazzTestName: ",
            |  "text": "${text.mkString("\\n").replace("\"", escapedBackslash).replace("\n", "\\n").replace("\r", "\\r")}",
@@ -103,7 +116,6 @@ object Slack {
            |  "ts": $timestamp
            |}
            """.stripMargin
-
       }
 
     val msg =

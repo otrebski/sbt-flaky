@@ -29,6 +29,12 @@ case class FlakyTest(
   def failures(): Int = failedRuns.size
 }
 
+case class TimeDetails(start: Long, end: Long) {
+  def duration():Long = end - start
+}
+
+case class FlakyTestReport(projectName: String, timeDetails: TimeDetails, testRuns: List[TestRun], flakyTests: List[FlakyTest])
+
 object Flaky {
 
   def parseJunitXmlReport(runName: String, xml: Elem): List[TestCase] = {
@@ -86,7 +92,10 @@ object Flaky {
     }.toList
   }
 
-  def createReport(iterationNames: Seq[String], flakyDir: File = new File("target/flaky-report")): List[FlakyTest] = {
+  def createReport(projectName: String,
+                   timeDetails: TimeDetails,
+                   iterationNames: Seq[String],
+                   flakyDir: File = new File("target/flaky-report")): FlakyTestReport = {
     val testRunDirs = flakyDir.listFiles
       .filter(_.isDirectory)
       .filter(f => iterationNames.contains(f.getName))
@@ -95,7 +104,8 @@ object Flaky {
       val testCases = processFolder(dir)
       TestRun(s"${dir.getName}", testCases)
     }
-    findFlakyTests(testRuns)
+    val flakyTests = findFlakyTests(testRuns)
+    FlakyTestReport(projectName, timeDetails, testRuns, flakyTests)
   }
 
   def isFailed(dir: File): Boolean = {

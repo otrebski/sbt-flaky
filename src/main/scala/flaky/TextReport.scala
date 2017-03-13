@@ -2,7 +2,9 @@ package flaky
 
 object TextReport {
 
-  def render(projectName: String, flaky: List[FlakyTest]): String = {
+  def render(report:FlakyTestReport): String = {
+    val projectName = report.projectName
+    val flaky = report.flakyTests
     import scala.Console.{GREEN, RED, RESET, CYAN, BOLD}
     val sb = new StringBuilder
     sb.append(s"$CYAN Flaky tests result for $BOLD $projectName\n")

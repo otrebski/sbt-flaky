@@ -72,11 +72,11 @@ object FlakyCommand {
           }
           (1 to i).map(_.toString).toList
       }
-      val report = Flaky.createReport(iterationNames, flakyReportsDir)
       val name = Project.extract(state).get(sbt.Keys.name)
-      state.log.info(TextReport.render(name, report))
+      val report = Flaky.createReport(name, TimeDetails(start, System.currentTimeMillis()), iterationNames, flakyReportsDir)
+      state.log.info(TextReport.render(report))
       slackHook.foreach { hookId =>
-        val slackMsg = Slack.render(name, report)
+        val slackMsg = Slack.render(report)
         Slack.send(hookId, slackMsg, state.log, flakyReportsDir)
       }
       state
