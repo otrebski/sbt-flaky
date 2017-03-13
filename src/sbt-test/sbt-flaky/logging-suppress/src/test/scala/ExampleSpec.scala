@@ -3,13 +3,9 @@ import org.scalatest._
 
 import scala.collection.mutable
 
-class ExampleSpec extends FlatSpec with Matchers with LazyLogging {
+class ExampleSpec extends FlatSpec with Matchers {
 
   "A Stack" should "pop values in last-in-first-out order" in {
-    logger.debug("Staring test - debug")
-    logger.info("Staring test - info")
-    logger.warn("Staring test - warn")
-    logger.error("Staring test - error")
     val stack = new mutable.Stack[Int]
     stack.push(1)
     stack.push(2)

@@ -1,4 +1,4 @@
-> flaky times=3
+> flaky times=5
 # How to check that there is no output on level<WARN on console
 
 #1. # starts a one-line comment

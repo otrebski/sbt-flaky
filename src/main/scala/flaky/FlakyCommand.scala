@@ -21,7 +21,6 @@ object FlakyCommand {
       val moveFilesF = moveFiles(flakyReportsDir, testReports, logFiles) _
 
       def runTasks(state: State, runIndex: Int) = {
-        state.log.info(s"Running tests: $runIndex")
         taskKeys.foreach { taskKey =>
           val extracted = Project extract state
           import extracted._
@@ -29,14 +28,17 @@ object FlakyCommand {
           val newState = append(Seq(logLevel in taskKey := logLevelInTask), state)
           Project.runTask(taskKey, newState, checkCycles = true)
         }
+        if (Flaky.isFailed(testReports)) {
+          val flakyReport = Flaky.processFolder(testReports)
+          flakyReport
+            .filter(_.failureDetails.nonEmpty)
+            .foreach(ft => state.log.error(s"${scala.Console.RED}Failed ${ft.clazz}:${ft.test} [${ft.time}s]"))
+        }
         moveFilesF(runIndex)
       }
 
       state.log.info(s"Executing flaky command")
-
-
       flakyReportsDir.mkdirs()
-
       val start = System.currentTimeMillis
 
       val iterationNames = args match {
