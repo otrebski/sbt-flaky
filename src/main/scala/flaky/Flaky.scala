@@ -109,7 +109,11 @@ object Flaky {
   }
 
   def isFailed(dir: File): Boolean = {
-    val testCases: List[TestCase] = processFolder(dir)
-    testCases.exists(tc => tc.failureDetails.nonEmpty)
+    if (dir.exists()){
+      val testCases: List[TestCase] = processFolder(dir)
+      testCases.exists(tc => tc.failureDetails.nonEmpty)
+    } else {
+      false
+    }
   }
 }
