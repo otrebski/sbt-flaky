@@ -2,7 +2,7 @@ organization := "pl.otrebski"
 
 name := "sbt-flaky"
 
-version := "0.3"
+version := "0.4-SNAPSHOT"
 
 //scalaVersion := "2.11.8"
 
@@ -26,7 +26,7 @@ bintrayOrganization := Some("otrebski")
 
 bintrayPackageLabels := Seq("sbt", "flaky-test")
 
-bintrayRepository := "otrebski"
+bintrayRepository := "sbt-plugins"
 
 licenses += ("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html"))
 
