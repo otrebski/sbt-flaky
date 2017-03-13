@@ -100,6 +100,8 @@ https://github.com/otrebski/sbt-flaky/blob/master/src/sbt-test/sbt-flaky/moveAdd
 If project contains a lot of tests it can produce huge output if test is run multiple times. To reduce amount of output use `flakyLogLevelInTask` to change logger level when running flaky command.
 ```scala
 flakyLogLevelInTask := sbt.Level.Info
+or
+flakyLogLevelInTask := sbt.Level.Error
 ```
 Test classes and application can produce output to console. Consider changing log levels for tests.
 
