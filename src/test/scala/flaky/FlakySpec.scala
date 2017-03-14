@@ -13,6 +13,8 @@ class FlakySpec extends WordSpec with Matchers {
   val successfulReport = Flaky.createReport("P1", TimeDetails(0, 100), Seq("1", "2"), flakyReportDirSuccessful)
   private val flakyReportDirWithFailures = new File("./src/test/resources/flakyTestRuns/withFailures/target/flaky-report/")
   val failedReport = Flaky.createReport("P1", TimeDetails(0, 100), Seq("1", "2", "3"), flakyReportDirWithFailures)
+  private val flakyReportDirAllFailures = new File("./src/test/resources/flakyTestRuns/allFailures/target/flaky-test-reports/")
+  val flakyReportAllFailers = Flaky.createReport("P1", TimeDetails(0, 100), Seq("1", "2", "3","4","5"), flakyReportDirAllFailures)
 
   "Flaky" should {
 

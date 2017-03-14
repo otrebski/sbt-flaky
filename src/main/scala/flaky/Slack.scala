@@ -1,6 +1,6 @@
 package flaky
 
-import java.io.{BufferedWriter, File, OutputStreamWriter, PrintWriter}
+import java.io._
 import java.net.{HttpURLConnection, URL}
 import java.util.Scanner
 
@@ -27,8 +27,8 @@ object Slack {
     val projectName = flakyTestReport.projectName
     val flaky = flakyTestReport.flakyTests
     val duration = flakyTestReport.timeDetails.duration()
-    val timeSpend = TimeReport.formatSeconds(duration/1000)
-    val timeSpendPerIteration = TimeReport.formatSeconds((duration/flakyTestReport.testRuns.size)/1000)
+    val timeSpend = TimeReport.formatSeconds(duration / 1000)
+    val timeSpendPerIteration = TimeReport.formatSeconds((duration / flakyTestReport.testRuns.size) / 1000)
 
     val summaryAttachment =
       s"""
@@ -52,8 +52,8 @@ object Slack {
     val flaky = flakyTestReport.flakyTests
     val failedCount = flaky.count(_.failures > 0)
     val duration = flakyTestReport.timeDetails.duration()
-    val timeSpend = TimeReport.formatSeconds(duration/1000)
-    val timeSpendPerIteration = TimeReport.formatSeconds((duration/flakyTestReport.testRuns.size)/1000)
+    val timeSpend = TimeReport.formatSeconds(duration / 1000)
+    val timeSpendPerIteration = TimeReport.formatSeconds((duration / flakyTestReport.testRuns.size) / 1000)
 
 
     val flakyText = flaky
@@ -93,11 +93,13 @@ object Slack {
           .flatMap {
             case (test, l) =>
               l.map { ft =>
-                val messagesOnFail = ft.failedRuns
-                  .flatMap(tc => tc.failureDetails)
-                  .map(fr => fr.message)
-                  .groupBy(identity).mapValues(_.size)
-                  .map((a) => s" * ${a._2} => ${a._1}")
+                val messagesOnFail = ft
+                  .groupByStacktrace()
+                  .map { list =>
+                    val msg = list.headOption.flatMap(_.failureDetails).map(_.message).getOrElse("?")
+                    val stacktrace = list.headOption.flatMap(_.failureDetails.flatMap(_.firstNonAssertStacktrace())).getOrElse("")
+                    s":small_orange_diamond: ${list.size} => $msg\\n $stacktrace"
+                  }
                   .mkString("\\n")
                 val failedIterations = ft.failedRuns.map(_.runName).mkString(",")
                 s":poop: $test:\\nFailed in test runs: $failedIterations\\n$messagesOnFail"

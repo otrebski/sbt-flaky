@@ -13,7 +13,19 @@ case class TestCase(runName: String,
                     failureDetails: Option[FailureDetails] = None
                    )
 
-case class FailureDetails(message: String, ftype: String, stacktrace: String)
+case class FailureDetails(message: String, ftype: String, stacktrace: String) {
+  def withoutStacktraceMessage(): FailureDetails = {
+    val newStacktraceWithoutMessage = stacktrace.substring(stacktrace.indexOf("\n"))
+    copy(stacktrace = newStacktraceWithoutMessage)
+  }
+
+  def firstNonAssertStacktrace(): Option[String] = {
+    stacktrace
+      .lines
+      .filter(_.startsWith("\tat"))
+      .find(line => !line.startsWith("\tat org.junit"))
+  }
+}
 
 case class TestRun(
                     name: String,
@@ -27,10 +39,17 @@ case class FlakyTest(
                       failedRuns: List[TestCase]
                     ) {
   def failures(): Int = failedRuns.size
+
+  def groupByStacktrace(): Iterable[List[TestCase]] = {
+    failedRuns.map { tc =>
+      tc.copy(failureDetails = tc.failureDetails.map(_.withoutStacktraceMessage()))
+    }.groupBy(_.failureDetails.map(_.stacktrace))
+      .values
+  }
 }
 
 case class TimeDetails(start: Long, end: Long) {
-  def duration():Long = end - start
+  def duration(): Long = end - start
 }
 
 case class FlakyTestReport(projectName: String, timeDetails: TimeDetails, testRuns: List[TestRun], flakyTests: List[FlakyTest])
@@ -109,7 +128,7 @@ object Flaky {
   }
 
   def isFailed(dir: File): Boolean = {
-    if (dir.exists()){
+    if (dir.exists()) {
       val testCases: List[TestCase] = processFolder(dir)
       testCases.exists(tc => tc.failureDetails.nonEmpty)
     } else {
