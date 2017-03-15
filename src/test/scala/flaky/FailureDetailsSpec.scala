@@ -12,6 +12,8 @@ class FailureDetailsSpec extends WordSpec with Matchers {
         """org.junit.ComparisonFailure: expected:&lt;00:00:00.00[2]&gt; but was:&lt;00:00:00.00[0]&gt;
           |	at org.junit.Assert.assertEquals(Assert.java:115)
           |	at org.junit.Assert.assertEquals(Assert.java:144)
+          |	at java.lang.Thread.getStackTrace(Thread.java:1552)
+          |	at scala.lang.Thread.getStackTrace(Thread.java:1552)
           |	at tests.DateFormattingTest.formatParallelTest(DateFormattingTest.java:27)
           |	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
           |	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
@@ -27,25 +29,25 @@ class FailureDetailsSpec extends WordSpec with Matchers {
       firstNonAssertStacktrace shouldBe Some("	at tests.DateFormattingTest.formatParallelTest(DateFormattingTest.java:27)")
     }
 
+    "remove message from stacktrace" in {
+      val stacktrace =
+        """org.junit.ComparisonFailure: expected:&lt;00:00:00.00[2]&gt; but was:&lt;00:00:00.00[0]&gt;
+          |	at org.junit.Assert.assertEquals(Assert.java:115)
+          |	at org.junit.Assert.assertEquals(Assert.java:144)
+          |	at tests.DateFormattingTest.formatParallelTest(DateFormattingTest.java:27)
+          |	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)""".stripMargin
+
+      val expected =
+        """
+          |	at org.junit.Assert.assertEquals(Assert.java:115)
+          |	at org.junit.Assert.assertEquals(Assert.java:144)
+          |	at tests.DateFormattingTest.formatParallelTest(DateFormattingTest.java:27)
+          |	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)""".stripMargin
+
+      val w: FailureDetails = FailureDetails("msg", "type", stacktrace).withoutStacktraceMessage()
+
+      w.stacktrace shouldBe expected
+    }
+
   }
-
-  "remove message from stacktrace" in {
-    val stacktrace =
-      """org.junit.ComparisonFailure: expected:&lt;00:00:00.00[2]&gt; but was:&lt;00:00:00.00[0]&gt;
-        |	at org.junit.Assert.assertEquals(Assert.java:115)
-        |	at org.junit.Assert.assertEquals(Assert.java:144)
-        |	at tests.DateFormattingTest.formatParallelTest(DateFormattingTest.java:27)
-        |	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)""".stripMargin
-
-    val expected = """
-      |	at org.junit.Assert.assertEquals(Assert.java:115)
-      |	at org.junit.Assert.assertEquals(Assert.java:144)
-      |	at tests.DateFormattingTest.formatParallelTest(DateFormattingTest.java:27)
-      |	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)""".stripMargin
-
-    val w: FailureDetails = FailureDetails("msg", "type", stacktrace).withoutStacktraceMessage()
-
-    w.stacktrace shouldBe expected
-  }
-
 }

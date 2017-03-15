@@ -23,7 +23,11 @@ case class FailureDetails(message: String, ftype: String, stacktrace: String) {
     stacktrace
       .lines
       .filter(_.startsWith("\tat"))
-      .find(line => !line.startsWith("\tat org.junit"))
+      .filter(!_.startsWith("\tat org.junit"))
+      .filter(!_.startsWith("\tat org.scalatest"))
+      .filter(!_.startsWith("\tat scala."))
+      .filter(!_.startsWith("\tat java."))
+      .find(_ => true)
   }
 }
 
