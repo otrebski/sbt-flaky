@@ -49,6 +49,19 @@ class package$Test extends WordSpec with Matchers {
       findCommonString(List("0abcdefg", "abcdefg","abcdefg")) shouldBe Some("_abcdefg")
     }
 
+    "process real life case" in {
+      val input = """java.lang.AssertionError: assertion failed: expected User(Name(Kowalski),List(),List(),List()), found User(Name(Kowalski),List(Property(P1(3908304518889162941),P2(xxx),P3(X),192838475652)),List(),List())
+                    |java.lang.AssertionError: assertion failed: expected User(Name(Kowalski),List(),List(),List()), found User(Name(Kowalski),List(Property(P1(4066995287767169607),P2(xxx),P3(X),192838475652)),List(),List())
+                    |java.lang.AssertionError: assertion failed: expected User(Name(Kowalski),List(),List(),List()), found User(Name(Kowalski),List(Property(P1(3339977301001549636),P2(xxx),P3(X),192838475652)),List(),List())
+                    |java.lang.AssertionError: assertion failed: expected User(Name(Kowalski),List(),List(),List()), found User(Name(Kowalski),List(Property(P1(220123700341947058),P2(xxx),P3(X),192838475652)),List(),List())
+                    |java.lang.AssertionError: assertion failed: expected User(Name(Kowalski),List(),List(),List()), found User(Name(Kowalski),List(Property(P1(2168806444424252285),P2(xxx),P3(X),192838475652)),List(),List())
+                    |java.lang.AssertionError: assertion failed: expected User(Name(Kowalski),List(),List(),List()), found User(Name(Kowalski),List(Property(P1(5918482956638044904),P2(xxx),P3(X),192838475652)),List(),List())
+                    |java.lang.AssertionError: assertion failed: expected User(Name(Kowalski),List(),List(),List()), found User(Name(Kowalski),List(Property(P1(2848338480078734399),P2(xxx),P3(X),192838475652)),List(),List())""".stripMargin
+      val commonS = "java.lang.AssertionError: assertion failed: expected User(Name(Kowalski),List(),List(),List()), found User(Name(Kowalski),List(Property(P1(___________________),P2(xxx),P3(X),____________)),List(),List())"
+
+      findCommonString(input.lines.toList) shouldBe Some(commonS)
+    }
+
   }
 
 }
