@@ -13,7 +13,6 @@ class package$Test extends WordSpec with Matchers {
       findCommonString(List("abc")) shouldBe Some("abc")
     }
 
-
     "return element from list for list of the same strings" in {
       findCommonString(List("abc", "abc", "abc")) shouldBe Some("abc")
     }
@@ -24,14 +23,12 @@ class package$Test extends WordSpec with Matchers {
 
 
     "return common element part of 2 strings - difference at start" in {
-      findCommonString(List("abc", "abc")) shouldBe Some("_bc")
+      findCommonString(List("abc", "Abc")) shouldBe Some("_bc")
     }
 
     "return common element part of 2 strings - difference int the middle" in {
-      findCommonString(List("abc", "abc")) shouldBe Some("a_c")
+      findCommonString(List("abc", "aBc")) shouldBe Some("a_c")
     }
-
-    
 
     "return common element part of 3 strings with 1 difference" in {
       findCommonString(List("abcde", "AbXde","abcde" )) shouldBe Some("ab_de")
