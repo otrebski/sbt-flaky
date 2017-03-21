@@ -75,7 +75,7 @@ object Slack {
          |  "color": "danger",
          |  "pretext": "Flaky test report for $projectName. Test were run ${flakyTestReport.testRuns.size} times",
          |  "author_name": "sbt-flaky",
-         |  "title": "Flaky test result: $failedCount of ${flaky.size}\\nTest were running for $timeSpend [$timeSpendPerIteration/iteration]",
+         |  "title": "Flaky test result: $failedCount test failed of ${flaky.size} tests.\\nTest were running for $timeSpend [$timeSpendPerIteration/iteration]",
          |  "text": "$flakyText",
          |  "footer": "sbt-flaky",
          |  "ts": $timestamp
