@@ -24,9 +24,11 @@ case class FailureDetails(message: String, ftype: String, stacktrace: String) {
       .lines
       .filter(_.startsWith("\tat"))
       .filter(!_.startsWith("\tat org.junit"))
+      .filter(!_.startsWith("\tat org.testng"))
       .filter(!_.startsWith("\tat org.scalatest"))
-      .filter(!_.startsWith("\tat scala."))
       .filter(!_.startsWith("\tat java."))
+      .filter(!_.startsWith("\tat scala."))
+      .filter(!_.startsWith("\tat akka."))
       .find(_ => true)
   }
 }
