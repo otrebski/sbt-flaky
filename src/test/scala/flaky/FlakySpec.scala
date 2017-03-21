@@ -14,7 +14,7 @@ class FlakySpec extends WordSpec with Matchers {
   private val flakyReportDirWithFailures = new File("./src/test/resources/flakyTestRuns/withFailures/target/flaky-report/")
   private val failedReport = Flaky.createReport("P1", TimeDetails(0, 100), Seq("1", "2", "3"), flakyReportDirWithFailures)
   private val flakyReportDirAllFailures = new File("./src/test/resources/flakyTestRuns/allFailures/target/flaky-test-reports/")
-  private val flakyReportAllFailers = Flaky.createReport("P1", TimeDetails(0, 100), Seq("1", "2", "3", "4", "5"), flakyReportDirAllFailures)
+  private val flakyReportAllFailures = Flaky.createReport("P1", TimeDetails(0, 100), Seq("1", "2", "3", "4", "5"), flakyReportDirAllFailures)
 
   "Flaky" should {
 
@@ -126,12 +126,5 @@ class FlakySpec extends WordSpec with Matchers {
       testCases shouldBe expected
     }
 
-    "should create report using junit reports" ignore {
-      //TODO implement test
-    }
-
-    "should process junit reports" ignore {
-      //TODO implement test
-    }
   }
 }
