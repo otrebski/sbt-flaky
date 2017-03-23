@@ -6,7 +6,8 @@ import java.util.Scanner
 
 import sbt.Logger
 
-import scala.collection.immutable.{Iterable, Seq}
+import scala.collection.immutable.Iterable
+import scala.language.implicitConversions
 import scala.util.{Failure, Success, Try}
 
 object Slack {
@@ -67,7 +68,6 @@ object Slack {
           .mkString("\\n")
         s"*$clazz*:\\n$r"
       }.mkString("\\n")
-
     val summaryAttachment =
       s"""
          |{
@@ -82,54 +82,41 @@ object Slack {
          |}
        """.stripMargin
 
-    val failedAttachments: Iterable[String] = flaky
-      .filter(_.failures > 0)
-      .groupBy(t => s"${t.clazz}")
-      .map { kv =>
-        val clazzTestName = kv._1
-        val list: Seq[FlakyTest] = kv._2
-
-        val text: Iterable[String] = list.groupBy(_.test)
-          .flatMap {
-            case (test, l) =>
-              l.map { ft =>
-                val messagesOnFail = ft
-                  .groupByStacktrace()
-                  .map { list =>
-                    val msg = list.headOption.flatMap(_.failureDetails).map(_.message).getOrElse("?")
-                    val stacktrace = list.headOption.flatMap(_.failureDetails.flatMap(_.firstNonAssertStacktrace())).getOrElse("")
-                    s":small_orange_diamond: ${list.size} => $msg\\n $stacktrace"
-                  }
-                  .mkString("\\n")
-                val failedIterations = ft.failedRuns.map(_.runName).mkString(",")
-                s":poop: $test:\\nFailed in test runs: $failedIterations\\n$messagesOnFail"
-              }
-          }
-
-        s"""
-           |{
-           |  "fallback": "Flaky test result for $clazzTestName",
-           |  "color": "danger",
-           |  "pretext": "Report for *$clazzTestName*",
-           |  "author_name": "sbt-flaky",
-           |  "title": "Flaky test details for $clazzTestName: ",
-           |  "text": "${text.mkString("\\n").replace("\"", escapedBackslash).replace("\n", "\\n").replace("\r", "\\r")}",
-           |  "footer": "sbt-flaky",
-           |  "ts": $timestamp
-           |}
+    val flakyCases = flakyTestReport.groupFlakyCases()
+    val failedAttachments: Iterable[String] = flakyCases.flatMap {
+      case (test, flakyTestCases) =>
+        flakyTestCases.map {
+          fc =>
+            val message = fc.message.map(_.escapeJson()).getOrElse("?")
+            val runNames = fc.runNames.mkString(", ")
+            val text =
+              s"""| :poop: $test failed in following test runs: $runNames with message:
+                  | $message
+                  | ${fc.stacktrace}""".stripMargin
+            s"""
+               |{
+               |  "fallback": "Flaky test report for $test",
+               |  "color": "danger",
+               |  "pretext": "Flaky test report for *$test*",
+               |  "author_name": "sbt-flaky",
+               |  "title": "Flaky test details for $test: ",
+               |  "text": "${text.escapeJson()}",
+               |  "footer": "sbt-flaky",
+               |  "ts": $timestamp
+               |}
            """.stripMargin
-      }
+        }
 
-    val msg =
-      s"""
-   {
-       "attachments": [
-          $summaryAttachment,
-          ${failedAttachments.mkString(",")}
-       ]
-   }
-   """
-    msg
+    }
+
+    s"""
+       |{
+       |    "attachments": [
+       |       $summaryAttachment,
+       |       ${failedAttachments.mkString(",")}
+       |    ]
+       |}
+       |""".stripMargin
   }
 
   def send(webHook: String, jsonMsg: String, log: Logger, targetDir: File): Unit = {
@@ -167,4 +154,19 @@ object Slack {
     }
 
   }
+
+
+  class ToJsonString(val string: String) {
+    def escapeJson(): String = {
+      string
+        .replace("\\","\\\\")
+        .replace("\t","\\t")
+        .replace("\"","\\\"")
+        .replace("\n","\\n")
+    }
+  }
+
+  implicit def stringToJsonString(s: String): ToJsonString = new ToJsonString(s)
 }
+
+
