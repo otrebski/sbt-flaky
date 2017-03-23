@@ -1,5 +1,7 @@
 package flaky
 
+import java.io.PrintWriter
+
 import flaky.FlakyPlugin._
 import sbt._
 
@@ -76,7 +78,14 @@ object FlakyCommand {
       }
       val name = Project.extract(state).get(sbt.Keys.name)
       val report = Flaky.createReport(name, TimeDetails(start, System.currentTimeMillis()), iterationNames, flakyReportsDir)
-      state.log.info(TextReport.render(report))
+
+      val textReport = TextReport.render(report)
+      new PrintWriter(new File(flakyReportsDir, "report.txt")) {
+        write(textReport)
+        close()
+      }
+      state.log.info(textReport)
+
       slackHook.foreach { hookId =>
         val slackMsg = Slack.render(report)
         Slack.send(hookId, slackMsg, state.log, flakyReportsDir)

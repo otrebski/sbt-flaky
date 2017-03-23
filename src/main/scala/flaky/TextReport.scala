@@ -1,11 +1,13 @@
 package flaky
 
+import scala.collection.immutable.Iterable
+
 object TextReport {
 
   def render(report:FlakyTestReport): String = {
     val projectName = report.projectName
     val flaky = report.flakyTests
-    import scala.Console.{GREEN, RED, RESET, CYAN, BOLD}
+    import scala.Console._
     val sb = new StringBuilder
     sb.append(s"$CYAN Flaky tests result for $BOLD $projectName\n")
       .append(GREEN)
@@ -29,9 +31,35 @@ object TextReport {
         sb.append(f"$RED${flaky.test} ${flaky.failures * 100f / flaky.totalRun}%.2f%%\n")
       }
     sb.append(s"\n${CYAN}Details:\n")
-    flakyTesRuns.foreach { flaky =>
-      sb.append(s"$RED${flaky.clazz}: ${flaky.test} failed in runs: ${flaky.failedRuns.map(_.runName).mkString(", ")}\n")
-    }
+
+    val failedDetails: Iterable[String] = report.groupFlakyCases()
+      .map {
+        case (testClass, flakyTestCases) =>
+          val flakyTestsDescription: String = flakyTestCases
+            .sortBy(_.runNames.size)
+            .map {
+              fc =>
+                val test = fc.test
+                val message = fc.message.getOrElse("?")
+                val runNames = fc.runNames.sorted.mkString(", ")
+                val text =
+                  s"""| [${fc.runNames.size} times] $RED$test$RESET
+                      |   In following test runs: $runNames
+                      |   Message: $RED$message$RESET
+                      |    ${fc.stacktrace}
+                      |    """.stripMargin
+                text
+            }.mkString("\n")
+          s"""
+             | $RED$testClass
+             |$flakyTestsDescription$RESET
+             |
+           """.stripMargin
+      }
+    failedDetails.foreach(sb.append)
+//    flakyTesRuns.foreach { flaky =>
+//      sb.append(s"$RED${flaky.clazz}: ${flaky.test} failed in runs: ${flaky.failedRuns.map(_.runName).mkString(", ")}\n")
+//    }
     if (flakyTesRuns.isEmpty) {
       sb.append(s"${GREEN}No flaky test detected")
     }
