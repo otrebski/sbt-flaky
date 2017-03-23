@@ -64,10 +64,12 @@ object Slack {
         val clazz = kv._1
         val list = kv._2
         val r = list
-          .map(flaky => f":red_circle: *${flaky.failures * 100f / flaky.totalRun}%.2f%%* ${flaky.test} ")
-          .mkString("\\n")
-        s"*$clazz*:\\n$r"
-      }.mkString("\\n")
+          .sortBy(_.failures())
+          .map(flaky => f":red_circle: ${flaky.failures * 100f / flaky.totalRun}%.2f%% ${flaky.test} ")
+          .mkString("\n")
+        s"$clazz:\n$r"
+      }.mkString("\n")
+
     val summaryAttachment =
       s"""
          |{
@@ -76,36 +78,37 @@ object Slack {
          |  "pretext": "Flaky test report for $projectName. Test were run ${flakyTestReport.testRuns.size} times",
          |  "author_name": "sbt-flaky",
          |  "title": "Flaky test result: $failedCount test failed of ${flaky.size} tests.\\nTest were running for $timeSpend [$timeSpendPerIteration/iteration]",
-         |  "text": "$flakyText",
+         |  "text": "${flakyText.escapeJson()}",
          |  "footer": "sbt-flaky",
          |  "ts": $timestamp
          |}
        """.stripMargin
 
     val flakyCases: Map[String, List[FlakyCase]] = flakyTestReport.groupFlakyCases()
-    val failedAttachments: Iterable[String] = flakyCases.flatMap {
+    val failedAttachments: Iterable[String] = flakyCases.map {
       case (testClass, flakyTestCases) =>
-        flakyTestCases.map {
-          fc =>
-            val test = fc.test
-            val message = fc.message.map(_.escapeJson()).getOrElse("?")
-            val runNames = fc.runNames.sorted.mkString(", ")
-            val fullTestName = s"$testClass.$test"
-            val text =
-              s"""| :poop: $testClass.$test failed in following test runs: $runNames with message:
-                  | $message
-                  | ${fc.stacktrace}""".stripMargin
-            s"""
-               |{
-               |  "fallback": "Flaky test report for ${fullTestName.escapeJson()}",
-               |  "color": "danger",
-               |  "title": "Details for ${fullTestName.escapeJson()}: ",
-               |  "text": "${text.escapeJson()}",
-               |  "ts": $timestamp
-               |}
+        val flakyTestsDescription: String = flakyTestCases
+          .sortBy(_.runNames.size)
+          .map {
+            fc =>
+              val test = fc.test
+              val message = fc.message.map(_.escapeJson()).getOrElse("?")
+              val runNames = fc.runNames.sorted.mkString(", ")
+              val text =
+                s"""| :small_orange_diamond:[${fc.runNames.size} times] $test
+                    |  In following test runs: $runNames
+                    |  Message: $message
+                    | ${fc.stacktrace}""".stripMargin
+              text
+          }.mkString("\n")
+          s"""
+             |{
+             |  "fallback": "Flaky test report for ${testClass.escapeJson()}",
+             |  "color": "danger",
+             |  "title": ":poop: Details for ${testClass.escapeJson()}: ",
+             |  "text": "${flakyTestsDescription.escapeJson()}"
+             |}
            """.stripMargin
-        }
-
     }
 
     s"""
@@ -158,10 +161,10 @@ object Slack {
   class ToJsonString(val string: String) {
     def escapeJson(): String = {
       string
-        .replace("\\","\\\\")
-        .replace("\t","\\t")
-        .replace("\"","\\\"")
-        .replace("\n","\\n")
+        .replace("\\", "\\\\")
+        .replace("\t", "\\t")
+        .replace("\"", "\\\"")
+        .replace("\n", "\\n")
     }
   }
 
