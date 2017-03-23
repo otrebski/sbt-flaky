@@ -4,17 +4,17 @@ import java.io.File
 
 import org.scalatest.{Matchers, WordSpec}
 
-import scala.collection.immutable.Seq
+import scala.collection.immutable.{Iterable, Seq}
 import scala.xml.XML
 
 class FlakySpec extends WordSpec with Matchers {
 
-  private val flakyReportDirSuccessful = new File("./src/test/resources/flakyTestRuns/successful/target/flaky-report/")
-  private val successfulReport = Flaky.createReport("P1", TimeDetails(0, 100), Seq("1", "2"), flakyReportDirSuccessful)
-  private val flakyReportDirWithFailures = new File("./src/test/resources/flakyTestRuns/withFailures/target/flaky-report/")
-  private val failedReport = Flaky.createReport("P1", TimeDetails(0, 100), Seq("1", "2", "3"), flakyReportDirWithFailures)
-  private val flakyReportDirAllFailures = new File("./src/test/resources/flakyTestRuns/allFailures/target/flaky-test-reports/")
-  private val flakyReportAllFailures = Flaky.createReport("P1", TimeDetails(0, 100), Seq("1", "2", "3", "4", "5"), flakyReportDirAllFailures)
+  private val flakyReportDirSuccessful: File = new File("./src/test/resources/flakyTestRuns/successful/target/flaky-report/")
+  private val successfulReport: FlakyTestReport = Flaky.createReport("P1", TimeDetails(0, 100), List("1", "2"), flakyReportDirSuccessful)
+  private val flakyReportDirWithFailures: File = new File("./src/test/resources/flakyTestRuns/withFailures/target/flaky-report/")
+  private val failedReport: FlakyTestReport = Flaky.createReport("P1", TimeDetails(0, 100), List("1", "2", "3"), flakyReportDirWithFailures)
+  private val flakyReportDirAllFailures: File = new File("./src/test/resources/flakyTestRuns/allFailures/target/flaky-test-reports/")
+  private val flakyReportAllFailures: FlakyTestReport = Flaky.createReport("P1", TimeDetails(0, 100), List("1", "2", "3", "4", "5"), flakyReportDirAllFailures)
 
   "Flaky" should {
 
@@ -26,7 +26,7 @@ class FlakySpec extends WordSpec with Matchers {
     }
 
     "create report based on 1 run and dir contains 2" in {
-      val successfulReport = Flaky.createReport("P1", TimeDetails(0, 100), Seq("1"), flakyReportDirSuccessful)
+      val successfulReport = Flaky.createReport("P1", TimeDetails(0, 100), List("1"), flakyReportDirSuccessful)
       successfulReport.flakyTests.size shouldBe 9
       successfulReport.flakyTests.head.totalRun shouldBe 1
     }
@@ -124,6 +124,28 @@ class FlakySpec extends WordSpec with Matchers {
       val testCases: Seq[TestCase] = Flaky.parseJunitXmlReport("run1", XML.loadFile(file))
 
       testCases shouldBe expected
+    }
+
+    "group flaky cases in successful report" in {
+      val grouped = successfulReport.groupFlakyCases()
+      grouped shouldBe Map.empty[String, Iterable[List[FlakyCase]]]
+    }
+
+    "group flaky cases in report with failure" in {
+      val grouped = flakyReportAllFailures.groupFlakyCases()
+      val flakyCases = List(
+        FlakyCase(
+          "formatParallelTest",
+          List("1", "3", "4", "5"),
+          Some("expected:<00:00:00.00[_]> but was:<00:00:00.00[_]>"),
+          "\tat tests.DateFormattingTest.formatParallelTest(DateFormattingTest.java:27)"),
+        FlakyCase(
+          "formatParallelTest",
+          List("2"),
+          Some("expected:<00:00:00.00[0]> but was:<00:00:00.00[3]>"),
+          "\tat tests.DateFormattingTest.formatParallelTest(DateFormattingTest.java:25)")
+      )
+      grouped shouldBe Map("tests.DateFormattingTest" -> flakyCases)
     }
 
   }

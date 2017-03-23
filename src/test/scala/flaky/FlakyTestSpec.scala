@@ -7,7 +7,7 @@ import org.scalatest.{Matchers, WordSpec}
 class FlakyTestSpec extends WordSpec with Matchers {
 
   private val flakyReportDirAllFailures = new File("./src/test/resources/flakyTestRuns/allFailures/target/flaky-test-reports/")
-  private val flakyReportAllFailures = Flaky.createReport("P1", TimeDetails(0, 100), Seq("1", "2", "3","4","5"), flakyReportDirAllFailures)
+  private val flakyReportAllFailures = Flaky.createReport("P1", TimeDetails(0, 100), List("1", "2", "3","4","5"), flakyReportDirAllFailures)
 
 
   "FlakyTest" should {

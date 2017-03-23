@@ -2,6 +2,7 @@ package flaky
 
 import java.io.File
 
+import scala.collection.immutable.{Iterable, Seq}
 import scala.language.postfixOps
 import scala.util.Try
 import scala.xml.{Elem, NodeSeq, XML}
@@ -15,7 +16,7 @@ case class TestCase(runName: String,
 
 case class FailureDetails(message: String, ftype: String, stacktrace: String) {
   def withoutStacktraceMessage(): FailureDetails = {
-    val newStacktraceWithoutMessage = stacktrace.substring(stacktrace.indexOf("\n"))
+    val newStacktraceWithoutMessage = stacktrace.substring(Math.max(stacktrace.indexOf("\n"),0))
     copy(stacktrace = newStacktraceWithoutMessage)
   }
 
@@ -46,11 +47,11 @@ case class FlakyTest(
                     ) {
   def failures(): Int = failedRuns.size
 
-  def groupByStacktrace(): Iterable[List[TestCase]] = {
+  def groupByStacktrace(): List[List[TestCase]] = {
     failedRuns.map { tc =>
       tc.copy(failureDetails = tc.failureDetails.map(_.withoutStacktraceMessage()))
     }.groupBy(_.failureDetails.map(_.stacktrace))
-      .values
+      .values.toList
   }
 }
 
@@ -58,7 +59,38 @@ case class TimeDetails(start: Long, end: Long) {
   def duration(): Long = end - start
 }
 
-case class FlakyTestReport(projectName: String, timeDetails: TimeDetails, testRuns: List[TestRun], flakyTests: List[FlakyTest])
+case class FlakyCase(test: String, runNames: List[String], message: Option[String], stacktrace: String)
+
+
+case class FlakyTestReport(projectName: String, timeDetails: TimeDetails, testRuns: List[TestRun], flakyTests: List[FlakyTest]) {
+  def groupFlakyCases(): Map[String, List[FlakyCase]] = {
+    flakyTests
+      .filter(_.failures > 0)
+      .groupBy(t => s"${t.clazz}")
+      .map { kv =>
+        val clazzTestName = kv._1
+        val list: Seq[FlakyTest] = kv._2
+
+        val text: Iterable[List[FlakyCase]] = list
+          .groupBy(_.test)
+          .flatMap {
+            case (test, listOfFlakyTests) =>
+              listOfFlakyTests.map {
+                _.groupByStacktrace()
+                  .map { list =>
+                    val runNames: List[String] = list.map(_.runName)
+                    val messages: Seq[String] = list.flatMap(_.failureDetails).map(_.message)
+                    val msg: Option[String] = findCommonString(messages.toList)
+                    val stacktrace = list.headOption.flatMap(_.failureDetails.flatMap(_.firstNonAssertStacktrace())).getOrElse("")
+                    FlakyCase(test, runNames, msg, stacktrace)
+                  }.toList
+              }
+          }
+
+        (clazzTestName, text.flatten.toList)
+      }
+  }
+}
 
 object Flaky {
 
@@ -119,7 +151,7 @@ object Flaky {
 
   def createReport(projectName: String,
                    timeDetails: TimeDetails,
-                   iterationNames: Seq[String],
+                   iterationNames: List[String],
                    flakyDir: File = new File("target/flaky-report")): FlakyTestReport = {
     val testRunDirs = flakyDir.listFiles
       .filter(_.isDirectory)
