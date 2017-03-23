@@ -82,26 +82,25 @@ object Slack {
          |}
        """.stripMargin
 
-    val flakyCases = flakyTestReport.groupFlakyCases()
+    val flakyCases: Map[String, List[FlakyCase]] = flakyTestReport.groupFlakyCases()
     val failedAttachments: Iterable[String] = flakyCases.flatMap {
-      case (test, flakyTestCases) =>
+      case (testClass, flakyTestCases) =>
         flakyTestCases.map {
           fc =>
+            val test = fc.test
             val message = fc.message.map(_.escapeJson()).getOrElse("?")
-            val runNames = fc.runNames.mkString(", ")
+            val runNames = fc.runNames.sorted.mkString(", ")
+            val fullTestName = s"$testClass.$test"
             val text =
-              s"""| :poop: $test failed in following test runs: $runNames with message:
+              s"""| :poop: $testClass.$test failed in following test runs: $runNames with message:
                   | $message
                   | ${fc.stacktrace}""".stripMargin
             s"""
                |{
-               |  "fallback": "Flaky test report for $test",
+               |  "fallback": "Flaky test report for ${fullTestName.escapeJson()}",
                |  "color": "danger",
-               |  "pretext": "Flaky test report for *$test*",
-               |  "author_name": "sbt-flaky",
-               |  "title": "Flaky test details for $test: ",
+               |  "title": "Details for ${fullTestName.escapeJson()}: ",
                |  "text": "${text.escapeJson()}",
-               |  "footer": "sbt-flaky",
                |  "ts": $timestamp
                |}
            """.stripMargin
