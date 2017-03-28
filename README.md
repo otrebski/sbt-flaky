@@ -56,31 +56,88 @@ flakySlackHook := Some("https://hooks.slack.com/services/AAAAAAAAA/BBBBBBBBB/CCC
 ## How it works.
 Command `flaky` execute `test` task multiple times. After every test iteration, test results from `./target/test-reports` is moved to `./target/flaky-test-reports/<ITERATION>`. Test task is run for X times, for X minutes or until first failing test task. All tests results are used to calculate success ratio for every test.
 
-## Example report
+## Reports
+
+sbt-flaky can create plain text report (console and `target/flaky-test-reports/report.txt` file) and report send on Slack. Failures are grouped by stacktrace and differences between messages are replace by `_`. Example of failure message `Message: expected:<00:00:00.00[_]> but was:<00:00:00.00[_]>`
+
+### Example report on console
 
 Currently only simple test report is printed:
 ```
-Healthy tests:
-A ForwardingActor should Forwards in a huge chain
-A ForwardingActor should Forward a message it receives
-A Stack should pop values in last-in-first-out order
-A Stack should throw NoSuchElementException if an empty stack is popped
-
-Flaky tests:
-A Stack should fail sometimes 20%
-A Stack should fail randomly often 7%
-A ForwardingActor should Forwards in a 2 huge chains 7%
-A Stack should fail randomly 6%
-A Stack should fail randomly sometimes 1%
-
-Details:
-ExampleSpec: A Stack should fail sometimes failed in runs: 100, 101, 104, 105, 106, 108, 116, 117, 122, 123, 125, 129, 13, 131, 134, 148, 168, 171, 172, 174, 18, 181, 183, 185, 191, 192, 198, 199, 217, 218, 219, 22, 222, 223, 227, 229, 235, 236, 239, 241, 242, 246, 252, 253, 260, 275, 279, 30, 41, 42, 59, 6, 78, 79, 81, 89, 92
-ExampleSpec: A Stack should fail randomly often failed in runs: 10, 136, 143, 170, 172, 20, 21, 239, 243, 253, 259, 26, 268, 28, 284, 4, 57, 77, 82, 94, 96
-TestKitUsageSpec: A ForwardingActor should Forwards in a 2 huge chains failed in runs: 10, 118, 13, 143, 199, 21, 22, 228, 229, 23, 256, 264, 266, 271, 284, 49, 66, 67, 79, 85, 89
-ExampleSpec: A Stack should fail randomly failed in runs: 119, 120, 154, 160, 169, 186, 196, 20, 229, 230, 235, 240, 262, 263, 5, 58, 65, 72, 86
-ExampleSpec: A Stack should fail randomly sometimes failed in runs: 113, 141, 160, 225, 283
+[info]  Flaky tests result for  sbt-flaky-demo
+[info] Healthy tests:
+[info] formatNotParallelTest
+[info] should write a lot of lines to file
+[info] A Stack should throw NoSuchElementException if an empty stack is popped
+[info] Instant should format date 2
+[info] A ForwardingActor should Forwards in a chains of 100 and 105
+[info] A Stack should pop values in last-in-first-out order
+[info] A ForwardingActor should Forwards in a chains of 100 and 100 with expectMsgAllOf
+[info] A ForwardingActor should Forward a message it receives
+[info] should read a lot of lines from file
+[info] A Scatter-Gather path should Forward 2 element list
+[info] Instant should format date 3
+[info] A Scatter-Gather path should Forward one element list
+[info] A ForwardingActor should Forwards in a chains of 100 and 110
+[info] A ForwardingActor should Forwards in chain of 100 actors
+[info] A ForwardingActor should Forwards in a chains of 100 and 120
+[info] 
+[info] Flaky tests:
+[info] A collection should be filtered with many filters 83.33%
+[info] Instant should format date 1 70.00%
+[info] formatParallelTest 63.33%
+[info] A Stack should fail sometimes 20.00%
+[info] A Stack should fail randomly often 16.67%
+[info] should complete async task 13.33%
+[info] A Scatter-Gather path should Forward 4  element list 6.67%
+[info] A Stack should fail randomly sometimes 3.33%
+[info] A Stack should fail randomly 3.33%
+[info] 
+[info] Details:
+[info] 
+[info]  actors.ActorScatterGatherSpec
+[info]  [1 times] A Scatter-Gather path should Forward 4  element list
+[info]    In following test runs: 5
+[info]    Message: assertion failed: expected Joined(List(message 1, message 2, message 3, message 4)), found Joined(List(message 1, message 3, message 2, message 4))
+[info]          at actors.ActorScatterGatherSpec$$anonfun$1$$anonfun$apply$mcV$sp$3$$anonfun$apply$3.apply(ActorScatterGatherSpec.scala:55)
+[info]     
+[info]  [1 times] A Scatter-Gather path should Forward 4  element list
+[info]    In following test runs: 13
+[info]    Message: assertion failed: timeout (149143826 nanoseconds) during expectMsg while waiting for Joined(List(message 1, message 2, message 3, message 4))
+[info]          at actors.ActorScatterGatherSpec$$anonfun$1$$anonfun$apply$mcV$sp$3$$anonfun$apply$3.apply(ActorScatterGatherSpec.scala:55)
+[info]     
+[info] 
+[info]            
+[info]  DateFormatSpec
+[info]  [21 times] Instant should format date 1
+[info]    In following test runs: 1, 10, 11, 13, 16, 18, 19, 2, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 6, 7, 9
+[info]    Message: "____17-03-2_T22:57:__._____Z" was not equal to "____17-03-2_T22:57:__._____Z"
+[info]          at DateFormatSpec$$anonfun$1$$anonfun$apply$mcV$sp$2.apply(DateFormatSpec.scala:17)
+[info]     
+[info] 
+[info]            
+[info]  Filtering
+[info]  [25 times] A collection should be filtered with many filters
+[info]    In following test runs: 1, 10, 11, 12, 14, 15, 16, 17, 18, 19, 2, 20, 21, 22, 23, 24, 26, 28, 29, 4, 5, 6, 7, 8, 9
+[info]    Message: Futures timed out after [500 milliseconds]
+[info]          at Filtering$$anonfun$3.apply(Filtering.scala:20)
+[info]     
+[info] 
+[info]            
+[info]  tests.DateFormattingTest
+[info]  [5 times] formatParallelTest
+[info]    In following test runs: 20, 26, 28, 8, 9
+[info]    Message: expected:<00:00:00.00[0]> but was:<00:00:00.00[_]>
+[info]          at tests.DateFormattingTest.formatParallelTest(DateFormattingTest.java:25)
+[info]     
+[info]  [14 times] formatParallelTest
+[info]    In following test runs: 10, 11, 12, 13, 15, 17, 18, 22, 29, 3, 4, 5, 6, 7
+[info]    Message: expected:<00:00:00.00[_]> but was:<00:00:00.00[_]>
+[info]          at tests.DateFormattingTest.formatParallelTest(DateFormattingTest.java:27)
+[info]     
+........
 ```
-## Example slack notification
+### Example slack notification
 
 Successful report example:
 
@@ -88,7 +145,11 @@ Successful report example:
 
 Failure report example:
 
-![Failure report](screenshots/slack-failures.png)
+Summary"
+![Failure summary](screenshots/slack-summary-v0.7.png)
+
+Details:
+![Failure summary](screenshots/slack-details-v0.7.png)
 
 
 ## Backing up log files from every test run
