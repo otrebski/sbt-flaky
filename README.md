@@ -18,7 +18,7 @@ resolvers += Resolver.url(
   Resolver.ivyStylePatterns
  )
 
-addSbtPlugin("pl.otrebski" % "sbt-flaky" % "0.1")
+addSbtPlugin("pl.otrebski" % "sbt-flaky" % "0.7")
 ```
 Don't forget to enable plugin in `build.sbt`
 ```scala 
