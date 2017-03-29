@@ -22,7 +22,7 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 
 publishMavenStyle := false
 
-bintrayOrganization := Some("otrebski")
+bintrayOrganization := Some("kotrebski")
 
 bintrayPackageLabels := Seq("sbt", "flaky-test")
 
