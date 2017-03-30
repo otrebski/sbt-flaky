@@ -7,9 +7,9 @@ import scala.language.postfixOps
 import scala.util.Try
 import scala.xml.{Elem, NodeSeq, XML}
 
+case class Test(clazz: String, test: String)
 case class TestCase(runName: String,
-                    clazz: String,
-                    test: String,
+                    test: Test,
                     time: Float,
                     failureDetails: Option[FailureDetails] = None
                    )
@@ -39,9 +39,7 @@ case class TestRun(
                     testCases: List[TestCase]
                   )
 
-case class FlakyTest(
-                      clazz: String,
-                      test: String,
+case class FlakyTest( test:Test,
                       totalRun: Int,
                       failedRuns: List[TestCase]
                     ) {
@@ -59,14 +57,14 @@ case class TimeDetails(start: Long, end: Long) {
   def duration(): Long = end - start
 }
 
-case class FlakyCase(test: String, runNames: List[String], message: Option[String], stacktrace: String)
+case class FlakyCase(test: Test, runNames: List[String], message: Option[String], stacktrace: String)
 
 
 case class FlakyTestReport(projectName: String, timeDetails: TimeDetails, testRuns: List[TestRun], flakyTests: List[FlakyTest]) {
   def groupFlakyCases(): Map[String, List[FlakyCase]] = {
     flakyTests
       .filter(_.failures > 0)
-      .groupBy(t => s"${t.clazz}")
+      .groupBy(t => t.test.clazz)
       .map { kv =>
         val clazzTestName = kv._1
         val list: Seq[FlakyTest] = kv._2
@@ -112,10 +110,10 @@ object Flaky {
             head.text)
         }
 
+      val test = Test(className.text, name.text)
       TestCase(
         runName,
-        className.text,
-        name.text,
+        test,
         time.text.toFloat,
         failureDetails
       )
@@ -136,16 +134,16 @@ object Flaky {
   }
 
   def findFlakyTests(list: List[TestRun]): List[FlakyTest] = {
-    case class Test(clazz: String, test: String)
+
 
     val map = list.flatMap(tr => tr.testCases)
-      .groupBy(tc => Test(tc.clazz, tc.test))
+      .groupBy(tc => tc.test )
 
     map.keySet.map { key =>
       val testCases: List[TestCase] = map(key)
       val failures = testCases.filter(tc => tc.failureDetails.nonEmpty)
-      val t = testCases.head
-      FlakyTest(t.clazz, t.test, testCases.length, failures)
+      val t = testCases.head.test
+      FlakyTest(t, testCases.length, failures)
     }.toList
   }
 

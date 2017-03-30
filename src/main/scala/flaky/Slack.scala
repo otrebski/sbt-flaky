@@ -59,7 +59,7 @@ object Slack {
 
     val flakyText = flaky
       .filter(_.failures > 0)
-      .groupBy(_.clazz)
+      .groupBy(_.test.clazz)
       .map { kv =>
         val clazz = kv._1
         val list = kv._2

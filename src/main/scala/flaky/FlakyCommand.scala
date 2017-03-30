@@ -34,7 +34,7 @@ object FlakyCommand {
           val flakyReport = Flaky.processFolder(testReports)
           flakyReport
             .filter(_.failureDetails.nonEmpty)
-            .foreach(ft => state.log.error(s"${scala.Console.RED}Failed ${ft.clazz}:${ft.test} [${ft.time}s]"))
+            .foreach(ft => state.log.error(s"${scala.Console.RED}Failed ${ft.test.clazz}:${ft.test.test} [${ft.time}s]"))
         }
         moveFilesF(runIndex)
       }
