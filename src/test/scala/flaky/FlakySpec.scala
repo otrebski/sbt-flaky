@@ -63,8 +63,7 @@ class FlakySpec extends WordSpec with Matchers {
           TestCase("run1", Test("t", "t1"), 1f, None),
           TestCase("run1", Test("t", "t2"), 1f, None))),
         TestRun("run2", List(
-          TestCase("run2", Test("t", "t1"), 1f, None),
-          failedTestCase))
+          TestCase("run2", Test("t", "t1"), 1f, None), failedTestCase))
       )
 
       val findFlakyTests: Seq[FlakyTest] = Flaky.findFlakyTests(runs.toList)
