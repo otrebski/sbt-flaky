@@ -7,7 +7,7 @@ This project is proof of concept of flaky test detector SBT plugin. It can run t
 
 
 ## Installation
-Example usage can be found in [demo project](https://github.com/otrebski/sbt-flaky-demo). [SBT scripted tests](https://github.com/otrebski/sbt-flaky/tree/master/src/sbt-test/sbt-flaky) also contains usage example.
+Example usages can be found in [demo project](https://github.com/otrebski/sbt-flaky-demo) or in [SBT scripted tests](https://github.com/otrebski/sbt-flaky/tree/master/src/sbt-test/sbt-flaky).
 
 Add plugin to project configuration `project/plugins.sbt` or global configuration `~/.sbt/0.13/plugins/plugins.sbt`
 ```scala
