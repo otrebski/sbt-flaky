@@ -7,11 +7,10 @@ import java.util.Date
 import flaky.{Flaky, FlakyTestReport}
 import org.apache.commons.vfs2.VFS
 
+import scala.collection.immutable
 
-trait History {
 
-  val historyDir: File
-  val flakyReportDir: File
+class History(historyDir: File, flakyReportDir: File) {
 
   private val zipFileFilter = new FileFilter {
     override def accept(pathname: File): Boolean = pathname.getName.endsWith(".zip")
@@ -30,17 +29,21 @@ trait History {
       .foreach(_.delete())
   }
 
-  def processHistory(): Unit = {
+  def processHistory(): HistoryReport = {
+    historyDir.mkdirs()
     val manager = VFS.getManager
     addCurrentToHistory()
     removeToOldFromHistory(20)
-    val r: Seq[FlakyTestReport] = runFiles(historyDir)
-      .map(file =>{
-        val fo = manager.resolveFile(file.toURI)
-         Flaky.createReportFromHistory(fo)
-      }
-
-
+    val r: Seq[HistoricalRun] = runFiles(historyDir)
+      .map(file => {
+        val uri = file.toURI.toString.replace("file:/", "zip:/")
+        val fo = manager.resolveFile(uri)
+        val report: FlakyTestReport = Flaky.createReportFromHistory(fo)
+        HistoricalRun(file.getName.replace(".zip", ""), report)
+      })
+    val data = HistoryData(r.toList)
+    val report: immutable.Seq[TestSummary] = data.testStats()
+    val date = new SimpleDateFormat("HH:mm dd-MM-YYYY").format(new Date())
+    HistoryReport(date, report.toList)
   }
-
 }

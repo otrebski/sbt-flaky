@@ -3,6 +3,7 @@ package flaky
 import java.io.PrintWriter
 
 import flaky.FlakyPlugin._
+import flaky.history.{History, HistoryData, TextHistoryReportRenderer}
 import sbt._
 
 object FlakyCommand {
@@ -90,6 +91,15 @@ object FlakyCommand {
         val slackMsg = Slack.render(report)
         Slack.send(hookId, slackMsg, state.log, flakyReportsDir)
       }
+
+
+      //TODO conditional history
+      //TODO use history dir from config
+      val historyDir = Project.extract(state).get(autoImport.flakyHistoryDir)
+      historyDir
+        .map(dir => new History(dir, flakyReportsDir).processHistory())
+        .map(hr => new TextHistoryReportRenderer().renderHistory(hr))
+        .foreach(s => state.log.info(s))
       state
   }
 

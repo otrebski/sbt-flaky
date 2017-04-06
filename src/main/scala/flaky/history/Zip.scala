@@ -6,7 +6,7 @@ import java.util.zip.{ZipEntry, ZipOutputStream}
 object Zip {
 
 
-  def compressFolder(zipFilepath: File, folder: File): Unit = {
+  def compressFolder(zipFilePath: File, folder: File): Unit = {
     import java.io.File
     def recursiveListFiles(f: File): Array[File] = {
       val these = f.listFiles
@@ -14,14 +14,15 @@ object Zip {
     }
 
     val toList = recursiveListFiles(folder).toList
-    compress(zipFilepath, toList)
+    compress(zipFilePath, folder, toList)
   }
 
-  def compress(zipFilepath: File, files: List[File]): Unit  = {
-    val zip = new ZipOutputStream(new FileOutputStream(zipFilepath))
+  def compress(zipFilePath: File, root: File, files: List[File]): Unit = {
+    val zip = new ZipOutputStream(new FileOutputStream(zipFilePath))
+    val rootPath = root.getAbsolutePath
     try {
       for (file <- files) {
-        zip.putNextEntry(new ZipEntry(file.getPath))
+        zip.putNextEntry(new ZipEntry(file.getAbsolutePath.substring(rootPath.length)))
         val in = new FileInputStream(file)
         try {
           Iterator
