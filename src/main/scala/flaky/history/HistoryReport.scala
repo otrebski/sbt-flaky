@@ -12,24 +12,6 @@ case class TestSummary(test: Test, stat: Stat)
 
 case class HistoryStat(test: Test, stats: List[Stat] = List.empty[Stat])
 
-case class HistoryData(historicalRuns: List[HistoricalRun]) {
-
-  def testStats(): List[TestSummary] = {
-    val flakyTests: List[Test] = historicalRuns
-      .flatMap(_.report.flakyTests)
-      .map(f => f.test)
-      .distinct
-
-    val r: Seq[TestSummary] = for {
-      flakyTest <- flakyTests
-      historicalRun <- historicalRuns
-      flakyTestData <- historicalRun.report.flakyTests if flakyTestData.test == flakyTest
-    } yield TestSummary(flakyTest, Stat(historicalRun.date, flakyTestData.failurePercent()))
-
-    r.toList
-  }
-}
-
 case class Grouped(
                     good: List[HistoryStat] = List.empty[HistoryStat],
                     newCases: List[HistoryStat] = List.empty[HistoryStat],
@@ -38,10 +20,32 @@ case class Grouped(
                     noChange: List[HistoryStat] = List.empty[HistoryStat],
                     worse: List[HistoryStat] = List.empty[HistoryStat])
 
-case class HistoryReport(date: String, historyStat: List[TestSummary]) {
+case class HistoryReport(date: String, historicalRuns: List[HistoricalRun]) {
 
   def grouped(): Grouped = {
-    historyStat
+
+    def testSummary(historicalRuns: List[HistoricalRun]): List[TestSummary] = {
+      val tests =
+        historicalRuns
+          .flatMap(_.report.testRuns)
+          .flatMap(_.testCases)
+          .map(_.test)
+          .distinct
+
+      for {
+        test <- tests
+        historicalRun <- historicalRuns
+      } yield TestSummary(test, Stat(historicalRun.date, historicalRun.report.flakyTests.find(_.test==test).map(_.failurePercent()).getOrElse(0f)))
+    }
+
+    HistoryReport.grouped(testSummary(historicalRuns))
+  }
+}
+
+object HistoryReport {
+
+  def grouped(testsSummary: List[TestSummary]): Grouped = {
+    testsSummary
       .groupBy(_.test)
       .foldLeft(Grouped()) { (group, tl) =>
         val test = tl._1
@@ -49,10 +53,7 @@ case class HistoryReport(date: String, historyStat: List[TestSummary]) {
         HistoryReport.groupTestResult(group, test, stats)
       }
   }
-}
 
-
-object HistoryReport {
   def groupTestResult(group: Grouped, test: Test, stats: List[Stat]): Grouped = {
     if (stats.size > 1) {
       val last2 = stats.drop(stats.size - 2)
@@ -72,7 +73,13 @@ object HistoryReport {
         group.copy(noChange = HistoryStat(test, stats) :: group.noChange)
       }
     } else {
-      group.copy(newCases = HistoryStat(test, stats) :: group.newCases)
+      stats.headOption.map { firstStat =>
+        if (firstStat.failureRate > 0) {
+          group.copy(newCases = HistoryStat(test, stats) :: group.newCases)
+        } else {
+          group.copy(good = HistoryStat(test, stats) :: group.good)
+        }
+      }.getOrElse(group)
     }
   }
 }

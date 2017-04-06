@@ -3,7 +3,7 @@ package flaky
 import java.io.PrintWriter
 
 import flaky.FlakyPlugin._
-import flaky.history.{History, HistoryData, TextHistoryReportRenderer}
+import flaky.history.{History, TextHistoryReportRenderer}
 import sbt._
 
 object FlakyCommand {

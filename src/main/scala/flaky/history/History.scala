@@ -4,11 +4,8 @@ import java.io.{File, FileFilter}
 import java.text.SimpleDateFormat
 import java.util.Date
 
-import flaky.{Flaky, FlakyTestReport}
+import flaky.{Flaky, FlakyTestReport, Test}
 import org.apache.commons.vfs2.VFS
-
-import scala.collection.immutable
-
 
 class History(historyDir: File, flakyReportDir: File) {
 
@@ -29,21 +26,21 @@ class History(historyDir: File, flakyReportDir: File) {
       .foreach(_.delete())
   }
 
+
+
   def processHistory(): HistoryReport = {
     historyDir.mkdirs()
     val manager = VFS.getManager
     addCurrentToHistory()
     removeToOldFromHistory(20)
-    val r: Seq[HistoricalRun] = runFiles(historyDir)
+    val historicalRuns: List[HistoricalRun] = runFiles(historyDir)
       .map(file => {
         val uri = file.toURI.toString.replace("file:/", "zip:/")
         val fo = manager.resolveFile(uri)
         val report: FlakyTestReport = Flaky.createReportFromHistory(fo)
         HistoricalRun(file.getName.replace(".zip", ""), report)
       })
-    val data = HistoryData(r.toList)
-    val report: immutable.Seq[TestSummary] = data.testStats()
     val date = new SimpleDateFormat("HH:mm dd-MM-YYYY").format(new Date())
-    HistoryReport(date, report.toList)
+    HistoryReport(date, historicalRuns)
   }
 }

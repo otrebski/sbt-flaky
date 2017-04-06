@@ -2,7 +2,7 @@ package flaky
 
 import org.scalatest.{Matchers, WordSpec}
 
-class package$Test extends WordSpec with Matchers {
+class package$Spec extends WordSpec with Matchers {
 
   "findCommonString" should {
     "return empty for empty list" in {
