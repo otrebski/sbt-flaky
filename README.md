@@ -7,17 +7,10 @@ This project is proof of concept of flaky test detector SBT plugin. It can run t
 
 
 ## Installation
-
-:warning: Plugin is not linked to sbt-plugin-releases yet! :warning:, you have to add http://otrebski.bintray.com/sbt-plugins to your repos. Example usage can be found in [demo project](https://github.com/otrebski/sbt-flaky-demo) 
+Example usage can be found in [demo project](https://github.com/otrebski/sbt-flaky-demo). [SBT scripted tests](https://github.com/otrebski/sbt-flaky/tree/master/src/sbt-test/sbt-flaky) also contains usage example.
 
 Add plugin to project configuration `project/plugins.sbt` or global configuration `~/.sbt/0.13/plugins/plugins.sbt`
 ```scala
-resolvers += Resolver.url(
-  "flaky",
-  url("http://otrebski.bintray.com/sbt-plugins"))(
-  Resolver.ivyStylePatterns
- )
-
 addSbtPlugin("pl.otrebski" % "sbt-flaky" % "0.7")
 ```
 Don't forget to enable plugin in `build.sbt`
