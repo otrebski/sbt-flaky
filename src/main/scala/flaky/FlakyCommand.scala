@@ -81,25 +81,27 @@ object FlakyCommand {
       val report = Flaky.createReport(name, TimeDetails(start, System.currentTimeMillis()), iterationNames, flakyReportsDir)
 
       val textReport = TextReport.render(report)
-      new PrintWriter(new File(flakyReportsDir, "report.txt")) {
-        write(textReport)
-        close()
-      }
+      Io.writeToFile(new File(flakyReportsDir, "report.txt"), textReport)
       state.log.info(textReport)
 
       slackHook.foreach { hookId =>
         val slackMsg = Slack.render(report)
-        Slack.send(hookId, slackMsg, state.log, flakyReportsDir)
+        Io.sendToSlack(hookId, slackMsg, state.log, new File(flakyReportsDir, "slack.json"))
       }
 
 
-      //TODO conditional history
-      //TODO use history dir from config
-      val historyDir = Project.extract(state).get(autoImport.flakyHistoryDir)
-      historyDir
-        .map(dir => new History(dir, flakyReportsDir).processHistory())
-        .map(hr => new TextHistoryReportRenderer().renderHistory(hr))
-        .foreach(s => state.log.info(s))
+      val historyDirOpt: Option[File] = Project.extract(state).get(autoImport.flakyHistoryDir)
+      historyDirOpt
+        .foreach { dir =>
+          val hr = new History(dir, flakyReportsDir).processHistory()
+          val textReport = new TextHistoryReportRenderer().renderHistory(hr)
+          state.log.info(textReport)
+          Io.writeToFile(new File(flakyReportsDir, "historyTrends.txt"), textReport)
+          slackHook.foreach { hookId =>
+            val slackMsg = "" //TODO
+            Io.sendToSlack(hookId, slackMsg, state.log, flakyReportsDir)
+          }
+        }
       state
   }
 
