@@ -1,6 +1,6 @@
 > flaky times=2
 > flaky times=3
-$ exists target/history
+$ exists history
 $ exists target/flaky-test-reports/historyTrends.txt
 
 
