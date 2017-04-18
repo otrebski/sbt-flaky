@@ -2,8 +2,6 @@ package flaky.history
 
 import flaky._
 
-import scala.collection.immutable.Seq
-
 case class HistoricalRun(date: String, report: FlakyTestReport)
 
 case class Stat(date: String, failureRate: Float)

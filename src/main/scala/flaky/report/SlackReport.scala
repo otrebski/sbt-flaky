@@ -1,16 +1,11 @@
-package flaky
+package flaky.report
 
-import java.io._
-import java.net.{HttpURLConnection, URL}
-import java.util.Scanner
-
-import sbt.Logger
+import flaky.{FlakyCase, FlakyTestReport, TimeReport}
 
 import scala.collection.immutable.Iterable
 import scala.language.implicitConversions
-import scala.util.{Failure, Success, Try}
 
-object Slack {
+object SlackReport {
 
   val escapedBackslash = """\\\""""
 
@@ -101,13 +96,13 @@ object Slack {
                     | ${fc.stacktrace}""".stripMargin
               text
           }.mkString("\n")
-          s"""
-             |{
-             |  "fallback": "Flaky test report for ${testClass.escapeJson()}",
-             |  "color": "danger",
-             |  "title": ":poop: Details for ${testClass.escapeJson()}: ",
-             |  "text": "${flakyTestsDescription.escapeJson()}"
-             |}
+        s"""
+           |{
+           |  "fallback": "Flaky test report for ${testClass.escapeJson()}",
+           |  "color": "danger",
+           |  "title": ":poop: Details for ${testClass.escapeJson()}: ",
+           |  "text": "${flakyTestsDescription.escapeJson()}"
+           |}
            """.stripMargin
     }
 
@@ -120,8 +115,6 @@ object Slack {
        |}
        |""".stripMargin
   }
-
-
 
 
   class ToJsonString(val string: String) {

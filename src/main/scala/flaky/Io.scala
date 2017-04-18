@@ -1,6 +1,6 @@
 package flaky
 
-import java.io.{BufferedWriter, File, OutputStreamWriter, PrintWriter}
+import java.io.{BufferedWriter, OutputStreamWriter, PrintWriter}
 import java.net.{HttpURLConnection, URL}
 import java.util.Scanner
 
@@ -8,12 +8,9 @@ import sbt.{File, Logger}
 
 import scala.util.{Failure, Success, Try}
 
-/**
-  * Created by k.otrebski on 07/04/2017.
-  */
 object Io {
 
-  def writeToFile(file:File, content:String ) = {
+  def writeToFile(file:File, content:String ): Unit = {
     new PrintWriter(file) {
       write(content)
       close()

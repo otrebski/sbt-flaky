@@ -10,4 +10,4 @@ libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.7" % "test"
 
 lazy val library = (project in file("."))
   .enablePlugins(FlakyPlugin)
-  .settings(flakyHistoryDir := Some(new File("tmp/history")))
+  .settings(flakyHistoryDir := Some(new File("target/history")))

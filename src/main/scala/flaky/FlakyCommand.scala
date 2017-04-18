@@ -1,14 +1,12 @@
 package flaky
 
-import java.io.PrintWriter
-
 import flaky.FlakyPlugin._
-import flaky.history.{History, TextHistoryReportRenderer}
+import flaky.history.{History, SlackHistoryRenderer, TextHistoryReportRenderer}
+import flaky.report.{SlackReport, TextReport}
 import sbt._
 
 object FlakyCommand {
 
-  //TODO run testOnly instead of test
   def flaky: Command = Command("flaky")(parser) {
     (state, args) =>
       val targetDir = Project.extract(state).get(Keys.target)
@@ -85,23 +83,21 @@ object FlakyCommand {
       state.log.info(textReport)
 
       slackHook.foreach { hookId =>
-        val slackMsg = Slack.render(report)
+        val slackMsg = SlackReport.render(report)
         Io.sendToSlack(hookId, slackMsg, state.log, new File(flakyReportsDir, "slack.json"))
       }
 
-
       val historyDirOpt: Option[File] = Project.extract(state).get(autoImport.flakyHistoryDir)
-      historyDirOpt
-        .foreach { dir =>
-          val hr = new History(dir, flakyReportsDir).processHistory()
-          val textReport = new TextHistoryReportRenderer().renderHistory(hr)
-          state.log.info(textReport)
-          Io.writeToFile(new File(flakyReportsDir, "historyTrends.txt"), textReport)
-          slackHook.foreach { hookId =>
-            val slackMsg = "" //TODO
-            Io.sendToSlack(hookId, slackMsg, state.log, flakyReportsDir)
-          }
+      historyDirOpt.foreach { dir =>
+        val historyReport = new History(dir, flakyReportsDir).processHistory()
+        val textReport = new TextHistoryReportRenderer().renderHistory(historyReport)
+        state.log.info(textReport)
+        Io.writeToFile(new File(flakyReportsDir, "historyTrends.txt"), textReport)
+        slackHook.foreach { hookId =>
+          val slackMsg = new SlackHistoryRenderer().renderHistory(historyReport)
+          Io.sendToSlack(hookId, slackMsg, state.log, new File(flakyReportsDir, "slackHistoryTrend.json"))
         }
+      }
       state
   }
 
@@ -113,11 +109,9 @@ object FlakyCommand {
     val duration = (Space ~> "duration=" ~> NatBasic)
       .examples("duration=15", "duration=60")
       .map { a => Duration(a.toLong) }
-
     val firstFailure = (Space ~> "firstFail")
       .examples("firstFail")
       .map { _ => FirstFailure }
-
     times | duration | firstFailure
   }
 
