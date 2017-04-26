@@ -2,7 +2,7 @@ organization := "pl.otrebski"
 
 name := "sbt-flaky"
 
-version := "0.8-SNAPSHOT"
+version := "0.8"
 
 //scalaVersion := "2.11.8"
 

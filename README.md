@@ -11,7 +11,7 @@ Example usages can be found in [demo project](https://github.com/otrebski/sbt-fl
 
 Add plugin to project configuration `project/plugins.sbt` or global configuration `~/.sbt/0.13/plugins/plugins.sbt`
 ```scala
-addSbtPlugin("pl.otrebski" % "sbt-flaky" % "0.7")
+addSbtPlugin("pl.otrebski" % "sbt-flaky" % "0.8")
 ```
 Don't forget to enable plugin in `build.sbt`
 ```scala 
