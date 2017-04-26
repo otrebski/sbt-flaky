@@ -13,7 +13,6 @@ object FlakyCommand {
 
       //TODO settingKey
       val testReports = new File(targetDir, "test-reports")
-
       val flakyReportsDir = new File(targetDir, Project.extract(state).get(autoImport.flakyReportsDir))
       val logFiles = Project.extract(state).get(autoImport.flakyAdditionalFiles)
       val logLevelInTask = Project.extract(state).get(autoImport.flakyLogLevelInTask)
@@ -75,6 +74,7 @@ object FlakyCommand {
           }
           (1 to i).map(_.toString).toList
       }
+
       val name = Project.extract(state).get(sbt.Keys.name)
       val report = Flaky.createReport(name, TimeDetails(start, System.currentTimeMillis()), iterationNames, flakyReportsDir)
 
