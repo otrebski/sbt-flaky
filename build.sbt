@@ -18,6 +18,8 @@ scriptedLaunchOpts := { scriptedLaunchOpts.value ++
 
 scriptedBufferLog := false
 
+libraryDependencies += "org.apache.commons" % "commons-vfs2" % "2.1"
+
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 
 publishMavenStyle := false

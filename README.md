@@ -145,6 +145,31 @@ Details:
 ![Failure summary](screenshots/slack-details-v0.7.png)
 
 
+## History trends
+
+Currently only simple text report on history trends is supported.
+
+```
+[info] [info]  History trends:
+[info] [info] New cases:
+[info] [info] ExampleSpec.should fail sometimes Failure rate: 0.0%, 33.3%
+[info] [info]
+[info] [info] Improvement:
+[info] [info] ExampleSpec.should fail randomly Failure rate: 50.0%, 33.3%
+[info] [info]
+[info] [info] No change:
+[info] [info]
+[info] [info]
+[info] [info] Worse:
+[info] [info] ExampleSpec.should fail randomly often Failure rate: 50.0%, 66.7%
+[info] [info]
+[info] [info]
+
+```
+To enable history trends set `flakyHistoryDir` property in build.sbt with name of folder used to keep old reports. Currently 20 history results is kept. 
+Example can be found [here](https://github.com/otrebski/sbt-flaky/blob/master/src/sbt-test/sbt-flaky/history/build.sbt)
+
+
 ## Backing up log files from every test run
 To backup log files from every test run, specify list of files with property `flakyAdditionalFiles := List(new File("target/test.log")))` Example can be found here:
 
@@ -180,8 +205,8 @@ Checkout this [example project](https://github.com/otrebski/sbt-flaky-demo)
 - [ ] Disabling sending report to slack based on ENV variable (for running locally)
 - [ ] Generating report (HTML, XML or JSON)
 - [ ] Select single test (or test class) to run (like testOnly task)
-- [ ] Keeping track of history
-- [ ] Based on history show trends
+- [X] [Keeping track of history](https://github.com/otrebski/sbt-flaky/issues/7)
+- [X] [Based on history show trends](https://github.com/otrebski/sbt-flaky/issues/7)
 - [x] Use results only from last runs. Ignore junk dirs from other `flaky` run
 - [x] [Suppress output from test](https://github.com/otrebski/sbt-flaky/issues/2) 
 - [x] Display nice progress with ETA

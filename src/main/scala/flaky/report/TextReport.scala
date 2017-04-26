@@ -1,4 +1,6 @@
-package flaky
+package flaky.report
+
+import flaky.FlakyTestReport
 
 import scala.collection.immutable.Iterable
 
@@ -57,9 +59,6 @@ object TextReport {
            """.stripMargin
       }
     failedDetails.foreach(sb.append)
-//    flakyTesRuns.foreach { flaky =>
-//      sb.append(s"$RED${flaky.clazz}: ${flaky.test} failed in runs: ${flaky.failedRuns.map(_.runName).mkString(", ")}\n")
-//    }
     if (flakyTesRuns.isEmpty) {
       sb.append(s"${GREEN}No flaky test detected")
     }

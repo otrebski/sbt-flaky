@@ -1,20 +1,18 @@
 package flaky
 
-import java.io.PrintWriter
-
 import flaky.FlakyPlugin._
+import flaky.history.{History, SlackHistoryRenderer, TextHistoryReportRenderer}
+import flaky.report.{SlackReport, TextReport}
 import sbt._
 
 object FlakyCommand {
 
-  //TODO run testOnly instead of test
   def flaky: Command = Command("flaky")(parser) {
     (state, args) =>
       val targetDir = Project.extract(state).get(Keys.target)
 
       //TODO settingKey
       val testReports = new File(targetDir, "test-reports")
-
       val flakyReportsDir = new File(targetDir, Project.extract(state).get(autoImport.flakyReportsDir))
       val logFiles = Project.extract(state).get(autoImport.flakyAdditionalFiles)
       val logLevelInTask = Project.extract(state).get(autoImport.flakyLogLevelInTask)
@@ -34,7 +32,7 @@ object FlakyCommand {
           val flakyReport = Flaky.processFolder(testReports)
           flakyReport
             .filter(_.failureDetails.nonEmpty)
-            .foreach(ft => state.log.error(s"${scala.Console.RED}Failed ${ft.clazz}:${ft.test} [${ft.time}s]"))
+            .foreach(ft => state.log.error(s"${scala.Console.RED}Failed ${ft.test.clazz}:${ft.test.test} [${ft.time}s]"))
         }
         moveFilesF(runIndex)
       }
@@ -76,19 +74,29 @@ object FlakyCommand {
           }
           (1 to i).map(_.toString).toList
       }
+
       val name = Project.extract(state).get(sbt.Keys.name)
       val report = Flaky.createReport(name, TimeDetails(start, System.currentTimeMillis()), iterationNames, flakyReportsDir)
 
       val textReport = TextReport.render(report)
-      new PrintWriter(new File(flakyReportsDir, "report.txt")) {
-        write(textReport)
-        close()
-      }
+      Io.writeToFile(new File(flakyReportsDir, "report.txt"), textReport)
       state.log.info(textReport)
 
       slackHook.foreach { hookId =>
-        val slackMsg = Slack.render(report)
-        Slack.send(hookId, slackMsg, state.log, flakyReportsDir)
+        val slackMsg = SlackReport.render(report)
+        Io.sendToSlack(hookId, slackMsg, state.log, new File(flakyReportsDir, "slack.json"))
+      }
+
+      val historyDirOpt: Option[File] = Project.extract(state).get(autoImport.flakyHistoryDir)
+      historyDirOpt.foreach { dir =>
+        val historyReport = new History(dir, flakyReportsDir).processHistory()
+        val textReport = new TextHistoryReportRenderer().renderHistory(historyReport)
+        state.log.info(textReport)
+        Io.writeToFile(new File(flakyReportsDir, "historyTrends.txt"), textReport)
+        slackHook.foreach { hookId =>
+          val slackMsg = new SlackHistoryRenderer().renderHistory(historyReport)
+          Io.sendToSlack(hookId, slackMsg, state.log, new File(flakyReportsDir, "slackHistoryTrend.json"))
+        }
       }
       state
   }
@@ -101,11 +109,9 @@ object FlakyCommand {
     val duration = (Space ~> "duration=" ~> NatBasic)
       .examples("duration=15", "duration=60")
       .map { a => Duration(a.toLong) }
-
     val firstFailure = (Space ~> "firstFail")
       .examples("firstFail")
       .map { _ => FirstFailure }
-
     times | duration | firstFailure
   }
 

@@ -2,21 +2,24 @@ package flaky
 
 import java.io.File
 
+import org.apache.commons.vfs2.FileObject
+
 import scala.collection.immutable.{Iterable, Seq}
 import scala.language.postfixOps
 import scala.util.Try
 import scala.xml.{Elem, NodeSeq, XML}
 
+case class Test(clazz: String, test: String)
+
 case class TestCase(runName: String,
-                    clazz: String,
-                    test: String,
-                    time: Float,
+                    test: Test,
+                    time: Float = 0f,
                     failureDetails: Option[FailureDetails] = None
                    )
 
 case class FailureDetails(message: String, ftype: String, stacktrace: String) {
   def withoutStacktraceMessage(): FailureDetails = {
-    val newStacktraceWithoutMessage = stacktrace.substring(Math.max(stacktrace.indexOf("\n"),0))
+    val newStacktraceWithoutMessage = stacktrace.substring(Math.max(stacktrace.indexOf("\n"), 0))
     copy(stacktrace = newStacktraceWithoutMessage)
   }
 
@@ -39,13 +42,14 @@ case class TestRun(
                     testCases: List[TestCase]
                   )
 
-case class FlakyTest(
-                      clazz: String,
-                      test: String,
-                      totalRun: Int,
-                      failedRuns: List[TestCase]
+case class FlakyTest(test: Test,
+                     totalRun: Int,
+                     failedRuns: List[TestCase]
                     ) {
+
   def failures(): Int = failedRuns.size
+
+  def failurePercent() = (100f * failures()) / totalRun
 
   def groupByStacktrace(): List[List[TestCase]] = {
     failedRuns.map { tc =>
@@ -59,14 +63,14 @@ case class TimeDetails(start: Long, end: Long) {
   def duration(): Long = end - start
 }
 
-case class FlakyCase(test: String, runNames: List[String], message: Option[String], stacktrace: String)
+case class FlakyCase(test: Test, runNames: List[String], message: Option[String], stacktrace: String)
 
 
 case class FlakyTestReport(projectName: String, timeDetails: TimeDetails, testRuns: List[TestRun], flakyTests: List[FlakyTest]) {
   def groupFlakyCases(): Map[String, List[FlakyCase]] = {
     flakyTests
       .filter(_.failures > 0)
-      .groupBy(t => s"${t.clazz}")
+      .groupBy(t => t.test.clazz)
       .map { kv =>
         val clazzTestName = kv._1
         val list: Seq[FlakyTest] = kv._2
@@ -112,10 +116,10 @@ object Flaky {
             head.text)
         }
 
+      val test = Test(className.text, name.text)
       TestCase(
         runName,
-        className.text,
-        name.text,
+        test,
         time.text.toFloat,
         failureDetails
       )
@@ -123,8 +127,7 @@ object Flaky {
   }
 
   def processFolder(dir: File): List[TestCase] = {
-    val f = dir.listFiles.toList
-    f
+    dir.listFiles.toList
       .map(_.getAbsolutePath)
       .filter(_.endsWith("xml"))
       .map(x => Try {
@@ -135,17 +138,26 @@ object Flaky {
       .flatMap { xml => parseJunitXmlReport(dir.getName, xml) }
   }
 
-  def findFlakyTests(list: List[TestRun]): List[FlakyTest] = {
-    case class Test(clazz: String, test: String)
+  def processFolder(dir: FileObject): List[TestCase] = {
+    dir.getChildren
+      .filter(_.getName.getBaseName.endsWith(".xml"))
+      .map(x => Try {
+        XML.load(x.getContent.getInputStream)
+      })
+      .filter(_.isSuccess)
+      .map(_.get)
+      .flatMap { xml => parseJunitXmlReport(dir.getName.getBaseName, xml) }.toList
+  }
 
+  def findFlakyTests(list: List[TestRun]): List[FlakyTest] = {
     val map = list.flatMap(tr => tr.testCases)
-      .groupBy(tc => Test(tc.clazz, tc.test))
+      .groupBy(tc => tc.test)
 
     map.keySet.map { key =>
       val testCases: List[TestCase] = map(key)
       val failures = testCases.filter(tc => tc.failureDetails.nonEmpty)
-      val t = testCases.head
-      FlakyTest(t.clazz, t.test, testCases.length, failures)
+      val t = testCases.head.test
+      FlakyTest(t, testCases.length, failures)
     }.toList
   }
 
@@ -164,6 +176,20 @@ object Flaky {
     val flakyTests = findFlakyTests(testRuns)
     FlakyTestReport(projectName, timeDetails, testRuns, flakyTests)
   }
+
+  def createReportFromHistory(zippedFolder: FileObject): FlakyTestReport = {
+    val testRunDirs = zippedFolder
+      .getChildren
+      .filter(_.isFolder)
+      .toList
+    val testRuns = testRunDirs.map { dir =>
+      val testCases = processFolder(dir)
+      TestRun(s"${dir.getName}", testCases)
+    }
+    val flakyTests = findFlakyTests(testRuns)
+    FlakyTestReport("", TimeDetails(0,0), testRuns, flakyTests)
+  }
+
 
   def isFailed(dir: File): Boolean = {
     if (dir.exists()) {
