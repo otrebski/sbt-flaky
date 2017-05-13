@@ -137,12 +137,14 @@ class FlakySpec extends WordSpec with Matchers {
           Test("tests.DateFormattingTest","formatParallelTest"),
           List("1", "3", "4", "5"),
           Some("expected:<00:00:00.00[_]> but was:<00:00:00.00[_]>"),
-          "\tat tests.DateFormattingTest.formatParallelTest(DateFormattingTest.java:27)"),
+          "\tat tests.DateFormattingTest.formatParallelTest(DateFormattingTest.java:27)",
+        Set("expected:<00:00:00.00[_]> but was:<00:00:00.00[_]>")),
         FlakyCase(
           Test("tests.DateFormattingTest","formatParallelTest"),
           List("2"),
           Some("expected:<00:00:00.00[0]> but was:<00:00:00.00[3]>"),
-          "\tat tests.DateFormattingTest.formatParallelTest(DateFormattingTest.java:25)")
+          "\tat tests.DateFormattingTest.formatParallelTest(DateFormattingTest.java:25)",
+          Set("expected:<00:00:00.00[_]> but was:<00:00:00.00[_]>"))
       )
       grouped shouldBe Map("tests.DateFormattingTest" -> flakyCases)
     }
