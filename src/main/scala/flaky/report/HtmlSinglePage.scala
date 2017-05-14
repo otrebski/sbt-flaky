@@ -1,5 +1,8 @@
 package flaky.report
 
+import java.text.SimpleDateFormat
+import java.util.Date
+
 import flaky.{FlakyCase, FlakyTestReport, TimeReport}
 
 import scalatags.Text
@@ -17,13 +20,12 @@ object HtmlSinglePage {
     } else {
       renderNoFailures(flakyTestReport)
     }
-
   }
 
   def renderNoFailures(flakyTestReport: FlakyTestReport) = html(
     body(
       h1("Flaky test result"),
-      p("All tests were succesfull")
+      p(style := "fill:rgb(0,195,0)", "All tests were successful")
     )
   ).render
 
@@ -44,7 +46,7 @@ object HtmlSinglePage {
   }
 
 
-  def renderFailed(flakyTestReport: FlakyTestReport) = {
+  def renderFailed(flakyTestReport: FlakyTestReport): String = {
     val timestamp = flakyTestReport.timeDetails.start
     val projectName = flakyTestReport.projectName
     val flaky = flakyTestReport.flakyTests
@@ -59,10 +61,13 @@ object HtmlSinglePage {
       .sortBy(_.failurePercent())
       .reverse
       .map { flaky =>
+        val testName = if (flaky.test.test == "(It is not a test)") {
+          "(It is not a test) - There is no  test name in JUnit report"
+        } else flaky.test.test
         tr(
-          td(a(href := s"#${flaky.test.clazz}", flaky.test.classNameOnly())),
-          td(flaky.test.test),
-          td(failureBarChar(flaky.failurePercent()))
+          td(borderTop := "1px solid", a(href := s"#${flaky.test.clazz}", flaky.test.classNameOnly())),
+          td(borderTop := "1px solid", testName),
+          td(borderTop := "1px solid", failureBarChar(flaky.failurePercent()))
         )
       }
 
@@ -76,7 +81,7 @@ object HtmlSinglePage {
     )
     val summaryAttachment =
       p(
-        h1(s"Flaky test result for $projectName"),
+        h1(s"Flaky test result for $projectName at ${new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(timestamp))}"),
         h2(s"Flaky test result: $failedCount test failed of ${flaky.size} tests. Test were running for $timeSpend [$timeSpendPerIteration/iteration]"),
         p(summaryTable)
       )
