@@ -7,6 +7,9 @@ import scalatags.Text.all._
 
 object HtmlSinglePage {
 
+  val testNameColor = "MistyRose"
+  val testClassColor = "LightPink"
+
 
   def pageSource(flakyTestReport: FlakyTestReport): String = {
     if (flakyTestReport.flakyTests.exists(_.failures > 0)) {
@@ -24,15 +27,32 @@ object HtmlSinglePage {
     )
   ).render
 
+  def failureBarChar(failurePercent: Float): Text.TypedTag[String] = {
+    import scalatags.Text.svgAttrs.{x, y}
+    import scalatags.Text.svgTags._
+    val red = failurePercent.toInt
+    val green = 100 - red
+    svg(width := "100", height := "20")(
+      rect(width := s"$green", height := 20, style := "fill:rgb(0,195,0)"),
+      rect(x := s"$green", width := s"$red", height := 20, style := "fill:rgb(255,0,0)"),
+      text(x := "10", y := "15")(f"$failurePercent%.2f%%")
+    )
+  }
+
+  def failureBarChar(failed: Int, runs: Int): Text.TypedTag[String] = {
+    failureBarChar(100f * failed / runs)
+  }
+
+
   def renderFailed(flakyTestReport: FlakyTestReport) = {
     val timestamp = flakyTestReport.timeDetails.start
     val projectName = flakyTestReport.projectName
     val flaky = flakyTestReport.flakyTests
     val failedCount = flaky.count(_.failures > 0)
     val duration = flakyTestReport.timeDetails.duration()
+    val testRunsCount = flakyTestReport.testRuns.size
     val timeSpend = TimeReport.formatSeconds(duration / 1000)
-    val timeSpendPerIteration = TimeReport.formatSeconds((duration / flakyTestReport.testRuns.size) / 1000)
-
+    val timeSpendPerIteration = TimeReport.formatSeconds((duration / testRunsCount) / 1000)
 
     val summaryTableContent: Seq[Text.TypedTag[String]] = flaky
       .filter(_.failures > 0)
@@ -42,11 +62,11 @@ object HtmlSinglePage {
         tr(
           td(a(href := s"#${flaky.test.clazz}", flaky.test.classNameOnly())),
           td(flaky.test.test),
-          td(f"${flaky.failures * 100f / flaky.totalRun}%.2f%%")
+          td(failureBarChar(flaky.failurePercent()))
         )
       }
 
-    val summaryTable = table(border := "1px solid", backgroundColor := "yellow",
+    val summaryTable = table(border := "1px solid", backgroundColor := "#CCCCCC",
       thead(
         th(b("Class")),
         th("Test"),
@@ -63,6 +83,25 @@ object HtmlSinglePage {
 
 
     val flakyCases: Map[String, List[FlakyCase]] = flakyTestReport.groupFlakyCases()
+
+    def message(fc: FlakyCase) = {
+      val message = fc.message
+      val lightBorder = css("border") := "1px solid lightgray"
+      if (fc.allMessages.size == 1) {
+        p(lightBorder, b("Message: "), code(message))
+      } else {
+        p(
+          p(lightBorder,
+            b("Message common part:"),
+            code(message)
+          ),
+          p("Detailed messages:"), ul(
+            fc.allMessages.map(m => li(lightBorder, code(m))).toArray: _*
+          )
+        )
+      }
+    }
+
     val failedAttachments = flakyCases.map {
       case (testClass, flakyTestCases) =>
         val flakyTestsDescription = flakyTestCases
@@ -70,28 +109,26 @@ object HtmlSinglePage {
           .map {
             fc =>
               val test = fc.test
-              val message = fc.message.getOrElse("?")
               val runNames = fc.runNames.sorted.mkString(", ")
               val text =
                 p(
-                  h4(s"${test.test} failed ${fc.runNames.size} times"),
-                  p(s"Test failed in following runs $runNames"),
+                  h4(
+                    css("background-color") := testNameColor,
+                    failureBarChar(fc.runNames.size, testRunsCount),
+                    s" ${test.test} failed ${fc.runNames.size} times"
+                  ),
                   p(b(s"Stacktrace:"), code(fc.stacktrace)),
-                  if (fc.allMessages.size == 1) {
-                    p(b("Message: "), code(message))
-                  } else {
-                    p(b("Message common part:"),
-                      code(message),
-                      p("Detailed messages:"), ul(
-                        fc.allMessages.map(m => li(code(m))).toArray: _*
-                      )
-                    )
-                  }
+                  message(fc),
+                  p(s"Test failed in following runs $runNames")
                 )
               text
           }
         p(hr(),
-          h3(id := testClass, s"Details for ${testClass.split('.').lastOption.getOrElse("<?>")}"),
+          h3(
+            id := testClass,
+            css("background-color") := testClassColor,
+            s"Details for ${testClass.split('.').lastOption.getOrElse("<?>")}"
+          ),
           flakyTestsDescription
         )
 
