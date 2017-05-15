@@ -203,7 +203,8 @@ Checkout this [example project](https://github.com/otrebski/sbt-flaky-demo)
 - [x] Create SBT plugin
 - [x] Select custom task to run insead of `Test`
 - [ ] Disabling sending report to slack based on ENV variable (for running locally)
-- [ ] Generating report (HTML, XML or JSON)
+- [ ] [Generating report HTML](https://github.com/otrebski/sbt-flaky/issues/9)
+- [ ] [Generating history report HTML](https://github.com/otrebski/sbt-flaky/issues/11)
 - [ ] Select single test (or test class) to run (like testOnly task)
 - [X] [Keeping track of history](https://github.com/otrebski/sbt-flaky/issues/7)
 - [X] [Based on history show trends](https://github.com/otrebski/sbt-flaky/issues/7)
