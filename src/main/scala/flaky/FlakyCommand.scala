@@ -2,7 +2,7 @@ package flaky
 
 import flaky.FlakyPlugin._
 import flaky.history.{History, SlackHistoryRenderer, TextHistoryReportRenderer}
-import flaky.report.{SlackReport, TextReport}
+import flaky.report.{HtmlSinglePage, SlackReport, TextReport}
 import sbt._
 
 object FlakyCommand {
@@ -14,6 +14,7 @@ object FlakyCommand {
       //TODO settingKey
       val testReports = new File(targetDir, "test-reports")
       val flakyReportsDir = new File(targetDir, Project.extract(state).get(autoImport.flakyReportsDir))
+      val flakyReportsDirHtml = new File(targetDir, Project.extract(state).get(autoImport.flakyReportsHtmlSinglePage))
       val logFiles = Project.extract(state).get(autoImport.flakyAdditionalFiles)
       val logLevelInTask = Project.extract(state).get(autoImport.flakyLogLevelInTask)
       val slackHook: Option[String] = Project.extract(state).get(autoImport.flakySlackHook)
@@ -81,6 +82,12 @@ object FlakyCommand {
       val textReport = TextReport.render(report)
       Io.writeToFile(new File(flakyReportsDir, "report.txt"), textReport)
       state.log.info(textReport)
+
+      val htmlReportSource = HtmlSinglePage.pageSource(report)
+      flakyReportsDirHtml.mkdirs()
+      val file1 = new File(flakyReportsDirHtml, "flaky-report.html")
+      Io.writeToFile(file1, htmlReportSource)
+      state.log.info(s"Html report saved in ${file1.getAbsolutePath}")
 
       slackHook.foreach { hookId =>
         val slackMsg = SlackReport.render(report)

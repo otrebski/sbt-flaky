@@ -9,7 +9,9 @@ import scala.language.postfixOps
 import scala.util.Try
 import scala.xml.{Elem, NodeSeq, XML}
 
-case class Test(clazz: String, test: String)
+case class Test(clazz: String, test: String) {
+  def classNameOnly() = clazz.split('.').lastOption.getOrElse("<?>")
+}
 
 case class TestCase(runName: String,
                     test: Test,
@@ -63,7 +65,7 @@ case class TimeDetails(start: Long, end: Long) {
   def duration(): Long = end - start
 }
 
-case class FlakyCase(test: Test, runNames: List[String], message: Option[String], stacktrace: String)
+case class FlakyCase(test: Test, runNames: List[String], message: Option[String], stacktrace: String, allMessages: Set[String])
 
 
 case class FlakyTestReport(projectName: String, timeDetails: TimeDetails, testRuns: List[TestRun], flakyTests: List[FlakyTest]) {
@@ -86,7 +88,7 @@ case class FlakyTestReport(projectName: String, timeDetails: TimeDetails, testRu
                     val messages: Seq[String] = list.flatMap(_.failureDetails).map(_.message)
                     val msg: Option[String] = findCommonString(messages.toList)
                     val stacktrace = list.headOption.flatMap(_.failureDetails.flatMap(_.firstNonAssertStacktrace())).getOrElse("")
-                    FlakyCase(test, runNames, msg, stacktrace)
+                    FlakyCase(test, runNames, msg, stacktrace, messages.toSet)
                   }.toList
               }
           }
@@ -187,7 +189,7 @@ object Flaky {
       TestRun(s"${dir.getName}", testCases)
     }
     val flakyTests = findFlakyTests(testRuns)
-    FlakyTestReport("", TimeDetails(0,0), testRuns, flakyTests)
+    FlakyTestReport("", TimeDetails(0, 0), testRuns, flakyTests)
   }
 
 
