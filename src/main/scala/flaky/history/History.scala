@@ -4,10 +4,10 @@ import java.io.{File, FileFilter}
 import java.text.SimpleDateFormat
 import java.util.Date
 
-import flaky.{Flaky, FlakyTestReport, Test}
+import flaky.{Flaky, FlakyTestReport}
 import org.apache.commons.vfs2.VFS
 
-class History(historyDir: File, flakyReportDir: File) {
+class History(project:String, historyDir: File, flakyReportDir: File) {
 
   private val zipFileFilter = new FileFilter {
     override def accept(pathname: File): Boolean = pathname.getName.endsWith(".zip")
@@ -27,12 +27,8 @@ class History(historyDir: File, flakyReportDir: File) {
   }
 
 
-
-  def processHistory(): HistoryReport = {
-    historyDir.mkdirs()
+  def createHistoryReport(): HistoryReport = {
     val manager = VFS.getManager
-    addCurrentToHistory()
-    removeToOldFromHistory(20)
     val historicalRuns: List[HistoricalRun] = runFiles(historyDir)
       .map(file => {
         val uri = file.toURI.toString.replace("file:/", "zip:/")
@@ -41,6 +37,13 @@ class History(historyDir: File, flakyReportDir: File) {
         HistoricalRun(file.getName.replace(".zip", ""), report)
       })
     val date = new SimpleDateFormat("HH:mm dd-MM-YYYY").format(new Date())
-    HistoryReport(date, historicalRuns)
+    HistoryReport(project, date, historicalRuns)
+  }
+
+  def processHistory(): HistoryReport = {
+    historyDir.mkdirs()
+    addCurrentToHistory()
+    removeToOldFromHistory(20)
+    createHistoryReport()
   }
 }

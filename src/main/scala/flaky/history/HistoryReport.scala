@@ -16,9 +16,15 @@ case class Grouped(
                     fixed: List[HistoryStat] = List.empty[HistoryStat],
                     better: List[HistoryStat] = List.empty[HistoryStat],
                     noChange: List[HistoryStat] = List.empty[HistoryStat],
-                    worse: List[HistoryStat] = List.empty[HistoryStat])
+                    worse: List[HistoryStat] = List.empty[HistoryStat]) {
 
-case class HistoryReport(date: String, historicalRuns: List[HistoricalRun]) {
+  def all(): List[HistoryStat] = {
+    good ::: newCases ::: fixed ::: better ::: noChange ::: worse
+  }
+
+}
+
+case class HistoryReport(project: String, date: String, historicalRuns: List[HistoricalRun]) {
 
   def grouped(): Grouped = {
 
@@ -33,7 +39,7 @@ case class HistoryReport(date: String, historicalRuns: List[HistoricalRun]) {
       for {
         test <- tests
         historicalRun <- historicalRuns
-      } yield TestSummary(test, Stat(historicalRun.date, historicalRun.report.flakyTests.find(_.test==test).map(_.failurePercent()).getOrElse(0f)))
+      } yield TestSummary(test, Stat(historicalRun.date, historicalRun.report.flakyTests.find(_.test == test).map(_.failurePercent()).getOrElse(0f)))
     }
 
     HistoryReport.grouped(testSummary(historicalRuns))

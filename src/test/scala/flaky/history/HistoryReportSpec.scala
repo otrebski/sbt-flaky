@@ -1,7 +1,7 @@
 package flaky.history
 
 import flaky._
-import org.scalatest.{FunSuite, Matchers, WordSpec}
+import org.scalatest.{Matchers, WordSpec}
 
 
 class HistoryReportSpec extends WordSpec with Matchers {
@@ -92,11 +92,11 @@ class HistoryReportSpec extends WordSpec with Matchers {
       val flakyTests2: List[FlakyTest] = List(FlakyTest(Test("t", "t2"), 2, List(TestCase("1", Test("t", "t2"), failureDetails = Some(FailureDetails("msg", "type", "stacktrace"))))))
       val historicalRun2 = HistoricalRun("2", FlakyTestReport("", TimeDetails(0, 0), runs2, flakyTests2))
 
-      val grouped = HistoryReport("", List(historicalRun1, historicalRun2)).grouped()
+      val grouped = HistoryReport("Project", "2014", List(historicalRun1, historicalRun2)).grouped()
       grouped.better shouldBe List.empty
       grouped.fixed shouldBe List.empty
-      grouped.newCases shouldBe List(HistoryStat(Test("t","t2"), List(Stat("1", 0), Stat("2", 50f))))
-      grouped.good shouldBe List(HistoryStat(Test("t","t1"), List(Stat("1", 0), Stat("2", 0))))
+      grouped.newCases shouldBe List(HistoryStat(Test("t", "t2"), List(Stat("1", 0), Stat("2", 50f))))
+      grouped.good shouldBe List(HistoryStat(Test("t", "t1"), List(Stat("1", 0), Stat("2", 0))))
       grouped.noChange shouldBe List.empty
       grouped.worse shouldBe List.empty
 

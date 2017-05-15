@@ -96,7 +96,7 @@ object FlakyCommand {
 
       val historyDirOpt: Option[File] = Project.extract(state).get(autoImport.flakyHistoryDir)
       historyDirOpt.foreach { dir =>
-        val historyReport = new History(dir, flakyReportsDir).processHistory()
+        val historyReport = new History(name, dir, flakyReportsDir).processHistory()
         val textReport = new TextHistoryReportRenderer().renderHistory(historyReport)
         state.log.info(textReport)
         Io.writeToFile(new File(flakyReportsDir, "historyTrends.txt"), textReport)
