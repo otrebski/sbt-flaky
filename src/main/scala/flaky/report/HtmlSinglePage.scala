@@ -22,10 +22,10 @@ object HtmlSinglePage {
     }
   }
 
-  def renderNoFailures(flakyTestReport: FlakyTestReport) = html(
+  def renderNoFailures(flakyTestReport: FlakyTestReport): String = html(
     body(
       h1("Flaky test result"),
-      p(style := "fill:rgb(0,195,0)", "All tests were successful")
+      p(backgroundColor := "#33AA33", "All tests were successful")
     )
   ).render
 
@@ -143,9 +143,21 @@ object HtmlSinglePage {
         summaryAttachment,
         p(
           failedAttachments.toArray: _*
-        )
+        ),
+        footer()
       )
     ).render
   }
 
+  def footer() = {
+    p(
+      hr(),
+      p(
+        css("color") := "gray",
+        css("text-align") := "right",
+        "Creteated with ",
+        a(href := "https://github.com/otrebski/sbt-flaky", "sbt-flaky plugin")
+      )
+    )
+  }
 }
