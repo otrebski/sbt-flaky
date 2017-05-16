@@ -88,7 +88,7 @@ object SvgChart {
 
   def chart(failuresRate: List[Float]) = {
     svg(width := (graphWidth + textArea).toString, height := (graphHeight + textArea).toString)(
-      (axis() ::: List(series(failuresRate))).toArray: _*
+      (List(series(failuresRate)) ::: axis()).toArray: _*
     )
   }
 
