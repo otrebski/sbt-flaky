@@ -1,7 +1,7 @@
 package flaky
 
 import flaky.FlakyPlugin._
-import flaky.history.{History, SlackHistoryRenderer, TextHistoryReportRenderer}
+import flaky.history.{History, HistoryHtmlReport, SlackHistoryRenderer, TextHistoryReportRenderer}
 import flaky.report.{HtmlSinglePage, SlackReport, TextReport}
 import sbt._
 
@@ -85,9 +85,9 @@ object FlakyCommand {
 
       val htmlReportSource = HtmlSinglePage.pageSource(report)
       flakyReportsDirHtml.mkdirs()
-      val file1 = new File(flakyReportsDirHtml, "flaky-report.html")
-      Io.writeToFile(file1, htmlReportSource)
-      state.log.info(s"Html report saved in ${file1.getAbsolutePath}")
+      val fileHtmlReport = new File(flakyReportsDirHtml, "flaky-report.html")
+      Io.writeToFile(fileHtmlReport, htmlReportSource)
+      state.log.info(s"Html report saved in ${fileHtmlReport.getAbsolutePath}")
 
       slackHook.foreach { hookId =>
         val slackMsg = SlackReport.render(report)
@@ -96,10 +96,14 @@ object FlakyCommand {
 
       val historyDirOpt: Option[File] = Project.extract(state).get(autoImport.flakyHistoryDir)
       historyDirOpt.foreach { dir =>
-        val historyReport = new History(dir, flakyReportsDir).processHistory()
+        val historyReport = new History(name, dir, flakyReportsDir).processHistory()
         val textReport = new TextHistoryReportRenderer().renderHistory(historyReport)
         state.log.info(textReport)
         Io.writeToFile(new File(flakyReportsDir, "historyTrends.txt"), textReport)
+        val historyHtmlReport = HistoryHtmlReport.renderHistory(historyReport)
+        val fileHistoryHtmlReport = new File(flakyReportsDirHtml, "flaky-report-history.html")
+        Io.writeToFile(fileHistoryHtmlReport, historyHtmlReport)
+        state.log.info(s"History HTML report saved in ${fileHistoryHtmlReport.getAbsolutePath}")
         slackHook.foreach { hookId =>
           val slackMsg = new SlackHistoryRenderer().renderHistory(historyReport)
           Io.sendToSlack(hookId, slackMsg, state.log, new File(flakyReportsDir, "slackHistoryTrend.json"))

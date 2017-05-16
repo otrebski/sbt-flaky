@@ -24,7 +24,11 @@ object SlackReport {
     val flaky = flakyTestReport.flakyTests
     val duration = flakyTestReport.timeDetails.duration()
     val timeSpend = TimeReport.formatSeconds(duration / 1000)
-    val timeSpendPerIteration = TimeReport.formatSeconds((duration / flakyTestReport.testRuns.size) / 1000)
+    val timeSpendPerIteration = if (flakyTestReport.testRuns.size > 0) {
+      TimeReport.formatSeconds((duration / flakyTestReport.testRuns.size) / 1000)
+    } else {
+      "?"
+    }
 
     val summaryAttachment =
       s"""
