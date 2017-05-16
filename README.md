@@ -11,7 +11,7 @@ Example usages can be found in [demo project](https://github.com/otrebski/sbt-fl
 
 Add plugin to project configuration `project/plugins.sbt` or global configuration `~/.sbt/0.13/plugins/plugins.sbt`
 ```scala
-addSbtPlugin("pl.otrebski" % "sbt-flaky" % "0.8")
+addSbtPlugin("pl.otrebski" % "sbt-flaky" % "0.9")
 ```
 Don't forget to enable plugin in `build.sbt`
 ```scala 
@@ -45,13 +45,14 @@ flakySlackHook := Some("https://hooks.slack.com/services/AAAAAAAAA/BBBBBBBBB/CCC
 
 ```
 
-
 ## How it works.
 Command `flaky` execute `test` task multiple times. After every test iteration, test results from `./target/test-reports` is moved to `./target/flaky-test-reports/<ITERATION>`. Test task is run for X times, for X minutes or until first failing test task. All tests results are used to calculate success ratio for every test.
 
 ## Reports
 
 sbt-flaky can create plain text report (console and `target/flaky-test-reports/report.txt` file) and report send on Slack. Failures are grouped by stacktrace and differences between messages are replace by `_`. Example of failure message `Message: expected:<00:00:00.00[_]> but was:<00:00:00.00[_]>`
+
+Html report is saved in `/target/flaky-test-reports-html/flaky-report.html`
 
 ### Example report on console
 
@@ -147,8 +148,9 @@ Details:
 
 ## History trends
 
-Currently only simple text report on history trends is supported.
+Simple text and HTML report on history trends is supported.
 
+Below is example of history report as text: 
 ```
 [info] [info]  History trends:
 [info] [info] New cases:
@@ -166,6 +168,10 @@ Currently only simple text report on history trends is supported.
 [info] [info]
 
 ```
+
+
+History trends Html report is saved in `flaky-test-reports-html/flaky-report-history.html`
+
 To enable history trends set `flakyHistoryDir` property in build.sbt with name of folder used to keep old reports. Currently 20 history results is kept. 
 Example can be found [here](https://github.com/otrebski/sbt-flaky/blob/master/src/sbt-test/sbt-flaky/history/build.sbt)
 
@@ -203,8 +209,8 @@ Checkout this [example project](https://github.com/otrebski/sbt-flaky-demo)
 - [x] Create SBT plugin
 - [x] Select custom task to run insead of `Test`
 - [ ] Disabling sending report to slack based on ENV variable (for running locally)
-- [ ] [Generating report HTML](https://github.com/otrebski/sbt-flaky/issues/9)
-- [ ] [Generating history report HTML](https://github.com/otrebski/sbt-flaky/issues/11)
+- [x] [Generating report HTML](https://github.com/otrebski/sbt-flaky/issues/9)
+- [x] [Generating history report HTML](https://github.com/otrebski/sbt-flaky/issues/11)
 - [ ] Select single test (or test class) to run (like testOnly task)
 - [X] [Keeping track of history](https://github.com/otrebski/sbt-flaky/issues/7)
 - [X] [Based on history show trends](https://github.com/otrebski/sbt-flaky/issues/7)
