@@ -6,8 +6,9 @@ import flaky.Io
 import flaky.report.HtmlSinglePage
 
 import scala.collection.immutable.Range
-import scalatags.Text
+import scalatags.{Text, generic}
 import scalatags.Text.all._
+import scalatags.text.Builder
 
 
 object SvgChart {
@@ -19,9 +20,9 @@ object SvgChart {
   import scalatags.Text.svgTags._
 
   object Styles {
-    val axis = style := "stroke:rgb(0,0,0);stroke-width:1"
-    val horizontalLine = style := "stroke:rgb(200,200,200);stroke-width:1"
-    val polygonStyle = style := "fill:#7AB295;stroke:black;stroke-width:1"
+    val axis: generic.AttrPair[Builder, String] = style := "stroke:rgb(0,0,0);stroke-width:1"
+    val horizontalLine: generic.AttrPair[Builder, String] = style := "stroke:rgb(200,200,200);stroke-width:1"
+    val polygonStyle: generic.AttrPair[Builder, String] = style := "fill:#7AB295;stroke:black;stroke-width:1"
   }
 
   def xCoordinate(index: Int): Int = textArea + 25 * index
@@ -71,7 +72,7 @@ object SvgChart {
       line(x1 := textArea.toString, y1 := graphHeight.toString, x2 := (graphWidth + textArea).toString, y2 := graphHeight.toString, Styles.axis),
       line(x1 := (graphWidth + textArea - 10).toString, y1 := (graphHeight - 5).toString, x2 := (graphWidth + textArea).toString, y2 := graphHeight.toString, Styles.axis),
       line(x1 := (graphWidth + textArea - 10).toString, y1 := (graphHeight + 5).toString, x2 := (graphWidth + textArea).toString, y2 := graphHeight.toString, Styles.axis))
-    (axis ::: ticksX.toList ::: ticksY.toList ::: majorRicksY.toList).toList
+    axis ::: ticksX.toList ::: ticksY.toList ::: majorRicksY.toList
   }
 
 
@@ -79,20 +80,18 @@ object SvgChart {
     val pointsString = failures
       .zipWithIndex
       .map {
-        case (value, index) => s"${xCoordinate(index)} ${yCoordinate(value)}"
+        case (currentValue: Float, index) => s"${xCoordinate(index)} ${yCoordinate(currentValue)}"
       }.mkString(s"${xCoordinate(0)} ${yCoordinate(0)}, ", ",", s", ${xCoordinate(failures.size - 1)} ${yCoordinate(0)}")
 
     polygon(points := pointsString, Styles.polygonStyle)
   }
 
 
-  def chart(failuresRate: List[Float]) = {
+  def chart(failuresRate: List[Float]): Text.TypedTag[String] = {
     svg(width := (graphWidth + textArea).toString, height := (graphHeight + textArea).toString)(
       (List(series(failuresRate)) ::: axis()).toArray: _*
     )
   }
-
-
 
 }
 
