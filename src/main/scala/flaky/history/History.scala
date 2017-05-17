@@ -7,7 +7,6 @@ import java.util.Date
 import flaky.{Flaky, FlakyTestReport, Io}
 import org.apache.commons.vfs2.VFS
 
-import scala.util.Try
 import scala.xml.XML
 
 class History(project: String, historyDir: File, flakyReportDir: File, projectDir: File) {
@@ -22,9 +21,7 @@ class History(project: String, historyDir: File, flakyReportDir: File, projectDi
     val timestamp = System.currentTimeMillis()
 
     val date = new SimpleDateFormat(History.dateFormat).format(new Date(timestamp))
-    val gitCommit = Try {
-      Git(projectDir).currentId()
-    }.toOption
+    val gitCommit = Git(projectDir).currentId().toOption
     val historyReportDescription = HistoryReportDescription(timestamp, gitCommit)
     HistoryReportDescription.save(historyReportDescription, new File(flakyReportDir, History.descriptorFile))
     Zip.compressFolder(new File(historyDir, s"$date.zip"), flakyReportDir)

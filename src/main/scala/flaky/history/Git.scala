@@ -25,7 +25,7 @@ import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 
 import scala.collection.JavaConversions._
-import scala.collection.immutable
+import scala.util.Try
 
 object Git {
   def apply(workTree: File): Git = new Git((new FileRepositoryBuilder).setWorkTree(workTree).build())
@@ -35,24 +35,26 @@ class Git(repository: Repository) {
 
   private val jgit = new JGit(repository)
 
-  def currentId(): String =
-    jgit.log
-      .setMaxCount(1)
-      .call()
-      .map(_.getId.abbreviate(7).name)
-      .head
+  def currentId(): Try[String] =
+    Try {
+      jgit.log
+        .setMaxCount(1)
+        .call()
+        .map(_.getId.abbreviate(7).name)
+        .head
+    }
 
-  def history(): List[GitCommit] =
-    jgit.log
-      .add(repository.resolve("master"))
-      .call()
-      .toList
-      .map(fullDesc)
+  def history(): Try[List[GitCommit]] =
+    Try {
+      jgit.log
+        .add(repository.resolve("master"))
+        .call()
+        .toList
+        .map(fullDesc)
+    }
 
-  def commitsList(previous: String, current: String): immutable.Seq[GitCommit] = {
-    history()
-      .dropWhile(_.id != current)
-      .takeWhile(_.id != previous)
+  def commitsList(previous: String, current: String): Try[List[GitCommit]] = {
+    history().map(_.dropWhile(_.id != current).takeWhile(_.id != previous))
   }
 
   private def fullDesc(commit: RevCommit) =

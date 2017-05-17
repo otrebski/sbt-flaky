@@ -120,7 +120,7 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
         val commits: Option[immutable.Seq[GitCommit]] = for {
           commitPrev <- hrdPrev.gitCommitHash
           commitNext <- hrdNext.gitCommitHash
-        } yield git.commitsList(commitPrev, commitNext)
+        } yield git.commitsList(commitPrev, commitNext).getOrElse(List.empty)
 
         val changes = if (commits.toList.flatten.isEmpty) {
           p("No changes")
