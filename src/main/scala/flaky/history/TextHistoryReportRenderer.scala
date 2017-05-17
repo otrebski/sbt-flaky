@@ -1,7 +1,7 @@
 package flaky.history
 
 class TextHistoryReportRenderer extends HistoryReportRenderer {
-  override def renderHistory(historyReport: HistoryReport): String = {
+  override def renderHistory(historyReport: HistoryReport, git:Git): String = {
     val grouped = historyReport.grouped()
 
     def summary(historyStat: List[HistoryStat]) = {

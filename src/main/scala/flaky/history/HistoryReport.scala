@@ -2,7 +2,7 @@ package flaky.history
 
 import flaky._
 
-case class HistoricalRun(date: String, report: FlakyTestReport)
+case class HistoricalRun(historyReportDescription: HistoryReportDescription, report: FlakyTestReport)
 
 case class Stat(date: String, failureRate: Float)
 
@@ -39,7 +39,7 @@ case class HistoryReport(project: String, date: String, historicalRuns: List[His
       for {
         test <- tests
         historicalRun <- historicalRuns
-      } yield TestSummary(test, Stat(historicalRun.date, historicalRun.report.flakyTests.find(_.test == test).map(_.failurePercent()).getOrElse(0f)))
+      } yield TestSummary(test, Stat(historicalRun.historyReportDescription.timestamp.toString, historicalRun.report.flakyTests.find(_.test == test).map(_.failurePercent()).getOrElse(0f)))
     }
 
     HistoryReport.grouped(testSummary(historicalRuns))
