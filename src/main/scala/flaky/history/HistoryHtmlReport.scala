@@ -1,15 +1,16 @@
 package flaky.history
 
 import java.io.File
+import java.text.SimpleDateFormat
 
 import flaky.Io
 import flaky.report.HtmlSinglePage
 
+import scala.collection.immutable
 import scala.collection.immutable.Range
-import scalatags.{Text, generic}
 import scalatags.Text.all._
 import scalatags.text.Builder
-
+import scalatags.{Text, generic}
 
 object SvgChart {
   val graphWidth = 800
@@ -101,13 +102,47 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
     sys.exit(1)
   }
   private val dir = args.head
-  private val history = new History("Project x", new File(dir), new File(""))
+  private val history = new History("Project x", new File(dir), new File(""), new File("."))
   println("Loading history data")
   private val historyReport1 = history.createHistoryReport()
   println("History data loaded")
-  Io.writeToFile(new File("historyChart.html"), renderHistory(historyReport1))
+  Io.writeToFile(new File("historyChart.html"), renderHistory(historyReport1, Git(new File("."))))
 
-  override def renderHistory(historyReport: HistoryReport): String = {
+  private def processChanges(historyReport: HistoryReport, git: Git) = {
+    val tuples = historyReport
+      .historicalRuns
+      .map(_.historyReportDescription)
+      .zipWithIndex
+
+    val diffs = tuples.zip(tuples.tail)
+    val diffsHtml: Seq[Text.TypedTag[String]] = diffs.map {
+      case ((hrdPrev, _), (hrdNext, index)) =>
+        val commits: Option[immutable.Seq[GitCommit]] = for {
+          commitPrev <- hrdPrev.gitCommitHash
+          commitNext <- hrdNext.gitCommitHash
+        } yield git.commitsList(commitPrev, commitNext).getOrElse(List.empty)
+
+        val changes = if (commits.toList.flatten.isEmpty) {
+          p("No changes")
+        } else {
+          val commitsList: Array[Text.TypedTag[String]] = commits
+            .map(c => c.map(commit => li(s"${commit.id}: ${commit.author} => ${commit.shortMsg}")))
+            .map(ol(_))
+            .toArray
+          p(
+            s"Changes ${hrdPrev.gitCommitHash.getOrElse("?")} -> ${hrdNext.gitCommitHash.getOrElse("?")}",
+            commitsList
+          )
+        }
+        p(
+          h4(s"Build $index ${new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(hrdNext.timestamp)}"),
+          changes
+        )
+    }
+    p(h3("Changes:"), diffsHtml)
+  }
+
+  override def renderHistory(historyReport: HistoryReport, git: Git): String = {
     val grouped = historyReport.grouped()
 
     val processFunction: (HistoryStat => Text.Modifier) = {
@@ -136,6 +171,7 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
         h2("Improvment:"),
         p(grouped.better.map(processFunction).toArray: _*),
         hr(),
+        processChanges(historyReport, git),
         HtmlSinglePage.footer()
       )
     )

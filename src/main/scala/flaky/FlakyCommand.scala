@@ -1,7 +1,7 @@
 package flaky
 
 import flaky.FlakyPlugin._
-import flaky.history.{History, HistoryHtmlReport, SlackHistoryRenderer, TextHistoryReportRenderer}
+import flaky.history._
 import flaky.report.{HtmlSinglePage, SlackReport, TextReport}
 import sbt._
 
@@ -10,6 +10,7 @@ object FlakyCommand {
   def flaky: Command = Command("flaky")(parser) {
     (state, args) =>
       val targetDir = Project.extract(state).get(Keys.target)
+      val baseDirectory = Project.extract(state).get(Keys.baseDirectory)
 
       //TODO settingKey
       val testReports = new File(targetDir, "test-reports")
@@ -96,16 +97,16 @@ object FlakyCommand {
 
       val historyDirOpt: Option[File] = Project.extract(state).get(autoImport.flakyHistoryDir)
       historyDirOpt.foreach { dir =>
-        val historyReport = new History(name, dir, flakyReportsDir).processHistory()
-        val textReport = new TextHistoryReportRenderer().renderHistory(historyReport)
+        val historyReport = new History(name, dir, flakyReportsDir, baseDirectory).processHistory()
+        val textReport = new TextHistoryReportRenderer().renderHistory(historyReport, Git(baseDirectory))
         state.log.info(textReport)
         Io.writeToFile(new File(flakyReportsDir, "historyTrends.txt"), textReport)
-        val historyHtmlReport = HistoryHtmlReport.renderHistory(historyReport)
+        val historyHtmlReport = HistoryHtmlReport.renderHistory(historyReport, Git(baseDirectory))
         val fileHistoryHtmlReport = new File(flakyReportsDirHtml, "flaky-report-history.html")
         Io.writeToFile(fileHistoryHtmlReport, historyHtmlReport)
         state.log.info(s"History HTML report saved in ${fileHistoryHtmlReport.getAbsolutePath}")
         slackHook.foreach { hookId =>
-          val slackMsg = new SlackHistoryRenderer().renderHistory(historyReport)
+          val slackMsg = new SlackHistoryRenderer().renderHistory(historyReport, Git(baseDirectory))
           Io.sendToSlack(hookId, slackMsg, state.log, new File(flakyReportsDir, "slackHistoryTrend.json"))
         }
       }

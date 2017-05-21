@@ -12,8 +12,6 @@ class HistoryReportSpec extends WordSpec with Matchers {
   val newCaseStat: List[Stat] = List(Stat("0", 0), Stat("1", 0f), Stat("2", 0.1f))
   val noChange: List[Stat] = List(Stat("0", 0), Stat("1", 0.1f), Stat("2", 0.1f))
   val test = Test("a", "b")
-
-
   "HistoryReport" should {
     "group worse test result" in {
       val result: Grouped = HistoryReport.groupTestResult(Grouped(), test, worseStat)
@@ -79,18 +77,19 @@ class HistoryReportSpec extends WordSpec with Matchers {
     "group historical runs" in {
       val runs1 = List(
         TestRun("1", List(TestCase("1", Test("t", "t1")), TestCase("1", Test("t", "t2")))),
-        TestRun("2", List(TestCase("2", Test("t", "t1")), TestCase("1", Test("t", "t2"))))
+        TestRun("2", List(TestCase("2", Test("t", "t1")), TestCase("2", Test("t", "t2"))))
       )
       val flakyTests1: List[FlakyTest] = List.empty[FlakyTest]
 
-      val historicalRun1 = HistoricalRun("1", FlakyTestReport("", TimeDetails(0, 0), runs1, flakyTests1))
+
+      val historicalRun1 = HistoricalRun(HistoryReportDescription(1L, Some("A")), FlakyTestReport("", TimeDetails(0, 0), runs1, flakyTests1))
 
       val runs2 = List(
         TestRun("1", List(TestCase("1", Test("t", "t1")), TestCase("1", Test("t", "t2")))),
-        TestRun("2", List(TestCase("2", Test("t", "t1")), TestCase("1", Test("t", "t2"), failureDetails = Some(FailureDetails("msg", "type", "stacktrace")))))
+        TestRun("2", List(TestCase("2", Test("t", "t1")), TestCase("2", Test("t", "t2"), failureDetails = Some(FailureDetails("msg", "type", "stacktrace")))))
       )
       val flakyTests2: List[FlakyTest] = List(FlakyTest(Test("t", "t2"), 2, List(TestCase("1", Test("t", "t2"), failureDetails = Some(FailureDetails("msg", "type", "stacktrace"))))))
-      val historicalRun2 = HistoricalRun("2", FlakyTestReport("", TimeDetails(0, 0), runs2, flakyTests2))
+      val historicalRun2 = HistoricalRun(HistoryReportDescription(2L, Some("A")), FlakyTestReport("", TimeDetails(0, 0), runs2, flakyTests2))
 
       val grouped = HistoryReport("Project", "2014", List(historicalRun1, historicalRun2)).grouped()
       grouped.better shouldBe List.empty

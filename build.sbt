@@ -2,7 +2,7 @@ organization := "pl.otrebski"
 
 name := "sbt-flaky"
 
-version := "0.9"
+version := "0.10-SNAPSHOT"
 
 //scalaVersion := "2.11.8"
 
@@ -21,6 +21,8 @@ scriptedBufferLog := false
 libraryDependencies += "org.apache.commons" % "commons-vfs2" % "2.1"
 
 libraryDependencies += "com.lihaoyi" %% "scalatags" % "0.6.5"
+
+libraryDependencies +=  "org.eclipse.jgit" % "org.eclipse.jgit" % "4.1.1.201511131810-r"
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 

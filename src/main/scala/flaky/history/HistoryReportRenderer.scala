@@ -1,5 +1,5 @@
 package flaky.history
 
 trait HistoryReportRenderer {
-  def renderHistory(historyReport: HistoryReport): String
+  def renderHistory(historyReport: HistoryReport, git: Git): String
 }
