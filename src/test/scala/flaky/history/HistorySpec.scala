@@ -5,11 +5,12 @@ import java.text.SimpleDateFormat
 
 import org.scalatest.{Matchers, WordSpec}
 
-class HistoryTest extends WordSpec with Matchers {
+class HistorySpec extends WordSpec with Matchers {
 
   val fileWithDescriptor = "20170516-072750.zip"
   val fileWithoutDescriptor = "20170516-072825.zip"
   val dirWithReports = new File("./src/test/resources/history")
+
 
   "HistoryTest" should {
 
@@ -26,4 +27,5 @@ class HistoryTest extends WordSpec with Matchers {
     }
 
   }
+
 }

@@ -6,7 +6,7 @@ import org.scalatest.{Matchers, WordSpec}
 
 import scala.io.Source
 
-class HistoryReportDescriptionTest extends WordSpec with Matchers {
+class HistoryReportDescriptionSpec extends WordSpec with Matchers {
 
   private val fileContent =
     """|<HistoryReportDescription>
