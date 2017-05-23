@@ -1,4 +1,4 @@
-package flaky.report
+package flaky.web
 
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -149,15 +149,5 @@ object HtmlSinglePage {
     ).render
   }
 
-  def footer() = {
-    p(
-      hr(),
-      p(
-        css("color") := "gray",
-        css("text-align") := "right",
-        "Creteated with ",
-        a(href := "https://github.com/otrebski/sbt-flaky", "sbt-flaky plugin")
-      )
-    )
-  }
+
 }

@@ -1,8 +1,11 @@
 package flaky
 
+import java.io.File
+
 import flaky.FlakyPlugin._
 import flaky.history._
-import flaky.report.{HtmlSinglePage, SlackReport, TextReport}
+import flaky.report.{SlackReport, TextReport}
+import flaky.web.{HistoryHtmlReport, HtmlSinglePage}
 import sbt._
 
 object FlakyCommand {
@@ -77,41 +80,82 @@ object FlakyCommand {
           (1 to i).map(_.toString).toList
       }
 
-      val name = Project.extract(state).get(sbt.Keys.name)
-      val report = Flaky.createReport(name, TimeDetails(start, System.currentTimeMillis()), iterationNames, flakyReportsDir)
+      val name: String = Project.extract(state).get(sbt.Keys.name)
+      val report: FlakyTestReport = Flaky.createReport(name, TimeDetails(start, System.currentTimeMillis()), iterationNames, flakyReportsDir)
 
-      val textReport = TextReport.render(report)
-      Io.writeToFile(new File(flakyReportsDir, "report.txt"), textReport)
-      state.log.info(textReport)
 
-      val htmlReportSource = HtmlSinglePage.pageSource(report)
-      flakyReportsDirHtml.mkdirs()
-      val fileHtmlReport = new File(flakyReportsDirHtml, "flaky-report.html")
-      Io.writeToFile(fileHtmlReport, htmlReportSource)
-      state.log.info(s"Html report saved in ${fileHtmlReport.getAbsolutePath}")
-
-      slackHook.foreach { hookId =>
-        val slackMsg = SlackReport.render(report)
-        Io.sendToSlack(hookId, slackMsg, state.log, new File(flakyReportsDir, "slack.json"))
-      }
-
-      val historyDirOpt: Option[File] = Project.extract(state).get(autoImport.flakyHistoryDir)
-      historyDirOpt.foreach { dir =>
-        val historyReport = new History(name, dir, flakyReportsDir, baseDirectory).processHistory()
-        val textReport = new TextHistoryReportRenderer().renderHistory(historyReport, Git(baseDirectory))
-        state.log.info(textReport)
-        Io.writeToFile(new File(flakyReportsDir, "historyTrends.txt"), textReport)
-        val historyHtmlReport = HistoryHtmlReport.renderHistory(historyReport, Git(baseDirectory))
-        val fileHistoryHtmlReport = new File(flakyReportsDirHtml, "flaky-report-history.html")
-        Io.writeToFile(fileHistoryHtmlReport, historyHtmlReport)
-        state.log.info(s"History HTML report saved in ${fileHistoryHtmlReport.getAbsolutePath}")
-        slackHook.foreach { hookId =>
-          val slackMsg = new SlackHistoryRenderer().renderHistory(historyReport, Git(baseDirectory))
-          Io.sendToSlack(hookId, slackMsg, state.log, new File(flakyReportsDir, "slackHistoryTrend.json"))
+      val historyOpt: Option[HistoryReport] = Project
+        .extract(state)
+        .get(autoImport.flakyHistoryDir)
+        .map { dir =>
+          val history = new History(
+            project = name,
+            historyDir = dir,
+            flakyReportDir = flakyReportsDir,
+            projectDir = baseDirectory)
+          history.processHistory()
+          history.createHistoryReport()
         }
-      }
+
+      textReport(baseDirectory, flakyReportsDir, report, historyOpt, state.log)
+
+      slackReport(baseDirectory, flakyReportsDir, slackHook, report, state.log)
+
+      createHtmlReports(
+        projectName = name,
+        report = report,
+        maybeHistoryReports = historyOpt,
+        flakyReportsDirHtml = flakyReportsDirHtml,
+        git = Git(baseDirectory),
+        log = state.log)
+
       state
   }
+
+
+  private def textReport(baseDirectory: File, flakyReportsDir: File, report: FlakyTestReport, historyOpt: Option[HistoryReport], log: Logger) = {
+    val textReport = TextReport.render(report)
+    Io.writeToFile(new File(flakyReportsDir, "report.txt"), textReport)
+    log.info(textReport)
+
+    historyOpt.foreach { historyReport =>
+      val textReport = new TextHistoryReportRenderer().renderHistory(historyReport, Git(baseDirectory))
+      log.info(textReport)
+      Io.writeToFile(new File(flakyReportsDir, "historyTrends.txt"), textReport)
+    }
+  }
+
+  private def slackReport(baseDirectory: File, flakyReportsDir: File, slackHook: Option[String], report: FlakyTestReport, log: Logger) = {
+    slackHook.foreach { hookId =>
+      val slackMsg = SlackReport.render(report)
+      Io.sendToSlack(hookId, slackMsg, log, new File(flakyReportsDir, "slack.json"))
+
+    }
+  }
+
+  def createHtmlReports(projectName: String,
+                        report: FlakyTestReport,
+                        maybeHistoryReports: Option[HistoryReport],
+                        flakyReportsDirHtml: File,
+                        git: Git,
+                        log: Logger): Unit = {
+    val htmlReportSource = HtmlSinglePage.pageSource(report)
+    flakyReportsDirHtml.mkdirs()
+    val fileHtmlReport = new File(flakyReportsDirHtml, "flaky-report.html")
+    Io.writeToFile(fileHtmlReport, htmlReportSource)
+    log.info(s"Html report saved in ${fileHtmlReport.getAbsolutePath}")
+
+    def historyFile() = new File(flakyReportsDirHtml, "flaky-report-history.html")
+
+    maybeHistoryReports.foreach { historyReport =>
+      val fileHistoryHtmlReport = historyFile()
+      val historyHtmlReport = HistoryHtmlReport.renderHistory(historyReport, git)
+      Io.writeToFile(fileHistoryHtmlReport, historyHtmlReport)
+      log.info(s"History HTML report saved in ${fileHistoryHtmlReport.getAbsolutePath}")
+    }
+    Io.writeToFile(new File(flakyReportsDirHtml, "index.html"), web.indexHtml(fileHtmlReport, maybeHistoryReports.map(_ => historyFile())))
+  }
+
 
   private def parser(state: State) = {
     import sbt.complete.DefaultParsers._
