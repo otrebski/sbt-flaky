@@ -1,7 +1,7 @@
 package flaky.web
 
 import scalatags.Text.all._
-import scalatags.Text.styles._
+//import scalatags.Text.styles._
 import scalatags.stylesheet._
 
 object ReportCss extends StyleSheet {

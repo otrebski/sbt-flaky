@@ -17,13 +17,20 @@ object SvgChart {
   val graphHeight: Int = 300
   private val textArea = 50
 
-  import scalatags.Text.svgAttrs._
+  import scalatags.Text.svgAttrs.{fill, stroke, strokeWidth, x, x1, x2, y, y1, y2, points}
   import scalatags.Text.svgTags._
 
   object Styles {
-    val axis: generic.AttrPair[Builder, String] = style := "stroke:rgb(0,0,0);stroke-width:1"
-    val horizontalLine: generic.AttrPair[Builder, String] = style := "stroke:rgb(200,200,200);stroke-width:1"
-    val polygonStyle: generic.AttrPair[Builder, String] = style := "fill:#7AB295;stroke:black;stroke-width:1"
+    val axisStroke: generic.AttrPair[Builder, String] = stroke := "black"
+    val axisStrokeWidth: generic.AttrPair[Builder, String] = strokeWidth := "1"
+
+    val horizontalLineStroke: generic.AttrPair[Builder, String] = stroke := "rgb(200,200,200)"
+    val horizontalLineStrokeWidth: generic.AttrPair[Builder, String] = strokeWidth := "1"
+
+    val polygonFill: generic.AttrPair[Builder, String] = fill := "red"
+    val polygonStroke: generic.AttrPair[Builder, String] = stroke := "black"
+    val polygonStrokeWidth: generic.AttrPair[Builder, String] = strokeWidth := "1"
+
   }
 
   def xCoordinate(index: Int): Int = textArea + 25 * index
@@ -37,7 +44,7 @@ object SvgChart {
         x2 := xCoordinate(0) + 2,
         y1 := yCoordinate(value),
         y2 := yCoordinate(value),
-        Styles.axis
+        Styles.axisStroke, Styles.axisStrokeWidth
       )
     }
     val majorRicksY = Range(5, 28, 5).flatMap { value =>
@@ -46,14 +53,14 @@ object SvgChart {
         x2 := graphWidth,
         y1 := yCoordinate(value),
         y2 := yCoordinate(value),
-        Styles.horizontalLine
+        Styles.horizontalLineStroke,Styles.horizontalLineStrokeWidth
       ) ::
         line(
           x1 := xCoordinate(0) - 4,
           x2 := xCoordinate(0) + 4,
           y1 := yCoordinate(value),
           y2 := yCoordinate(value),
-          Styles.axis
+          Styles.axisStroke, Styles.axisStrokeWidth
         ) :: text(x := xCoordinate(0) - 35, y := yCoordinate(value) + 7)(s"$value%") :: Nil
     }
 
@@ -63,16 +70,16 @@ object SvgChart {
         x2 := xCoordinate(index),
         y1 := (yCoordinate(0) - 3).toString,
         y2 := (yCoordinate(0) + 3).toString,
-        Styles.axis
+        Styles.axisStroke, Styles.axisStrokeWidth
       )
     }
 
-    val axis = List(line(x1 := textArea.toString, y1 := "0", x2 := textArea.toString, y2 := "300", Styles.axis),
-      line(x1 := textArea.toString, y1 := "0", x2 := (textArea - 5).toString, y2 := "10", Styles.axis),
-      line(x1 := textArea.toString, y1 := "0", x2 := (textArea + 5).toString, y2 := "10", Styles.axis),
-      line(x1 := textArea.toString, y1 := graphHeight.toString, x2 := (graphWidth + textArea).toString, y2 := graphHeight.toString, Styles.axis),
-      line(x1 := (graphWidth + textArea - 10).toString, y1 := (graphHeight - 5).toString, x2 := (graphWidth + textArea).toString, y2 := graphHeight.toString, Styles.axis),
-      line(x1 := (graphWidth + textArea - 10).toString, y1 := (graphHeight + 5).toString, x2 := (graphWidth + textArea).toString, y2 := graphHeight.toString, Styles.axis))
+    val axis = List(line(x1 := textArea.toString, y1 := "0", x2 := textArea.toString, y2 := "300", Styles.axisStroke, Styles.axisStrokeWidth),
+      line(x1 := textArea.toString, y1 := "0", x2 := (textArea - 5).toString, y2 := "10", Styles.axisStroke, Styles.axisStrokeWidth),
+      line(x1 := textArea.toString, y1 := "0", x2 := (textArea + 5).toString, y2 := "10", Styles.axisStroke, Styles.axisStrokeWidth),
+      line(x1 := textArea.toString, y1 := graphHeight.toString, x2 := (graphWidth + textArea).toString, y2 := graphHeight.toString, Styles.axisStroke, Styles.axisStrokeWidth),
+      line(x1 := (graphWidth + textArea - 10).toString, y1 := (graphHeight - 5).toString, x2 := (graphWidth + textArea).toString, y2 := graphHeight.toString, Styles.axisStroke, Styles.axisStrokeWidth),
+      line(x1 := (graphWidth + textArea - 10).toString, y1 := (graphHeight + 5).toString, x2 := (graphWidth + textArea).toString, y2 := graphHeight.toString, Styles.axisStroke, Styles.axisStrokeWidth))
     axis ::: ticksX.toList ::: ticksY.toList ::: majorRicksY.toList
   }
 
@@ -84,7 +91,7 @@ object SvgChart {
         case (currentValue: Float, index) => s"${xCoordinate(index)} ${yCoordinate(currentValue)}"
       }.mkString(s"${xCoordinate(0)} ${yCoordinate(0)}, ", ",", s", ${xCoordinate(failures.size - 1)} ${yCoordinate(0)}")
 
-    polygon(points := pointsString, Styles.polygonStyle)
+    polygon(points := pointsString, Styles.polygonFill, Styles.polygonStroke, Styles.polygonStrokeWidth)
   }
 
 
@@ -156,7 +163,7 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
     }
 
     val page = html(
-      head(link(rel:="stylesheet", href := "report.css")),
+      head(link(rel := "stylesheet", href := "report.css")),
       body(
         h1(s"History trends of flaky tests for ${historyReport.project}"),
         p(s"Generate at ${historyReport.date}"),

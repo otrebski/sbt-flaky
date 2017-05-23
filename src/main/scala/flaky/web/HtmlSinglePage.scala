@@ -33,8 +33,8 @@ object HtmlSinglePage {
     val red = failurePercent.toInt
     val green = 100 - red
     svg(width := "100", height := "20")(
-      rect(width := s"$green", height := 20, style := "fill:rgb(0,195,0)"),
-      rect(x := s"$green", width := s"$red", height := 20, style := "fill:rgb(255,0,0)"),
+      rect(width := s"$green", height := 20, attr("fill") :="rgb(0,195,0)"),
+      rect(x := s"$green", width := s"$red", height := 20, attr("fill") :="rgb(255,0,0)"),
       text(x := "10", y := "15")(f"$failurePercent%.2f%%")
     )
   }
