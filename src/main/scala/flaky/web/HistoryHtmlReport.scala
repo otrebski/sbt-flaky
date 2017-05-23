@@ -149,13 +149,14 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
       t =>
         val failuresRate: Seq[Float] = t.stats.map(_.failureRate)
         p(
-          h3(css("background-color") := HtmlSinglePage.testClassColor, s"Class: ${t.test.classNameOnly()}"),
-          p(css("background-color") := HtmlSinglePage.testNameColor, s"Test: ${t.test.test}"),
+          h3(ReportCss.testClass, s"Class: ${t.test.classNameOnly()}"),
+          p(ReportCss.testName, s"Test: ${t.test.test}"),
           SvgChart.chart(failuresRate.toList)
         )
     }
 
     val page = html(
+      head(link(rel:="stylesheet", href := "report.css")),
       body(
         h1(s"History trends of flaky tests for ${historyReport.project}"),
         p(s"Generate at ${historyReport.date}"),

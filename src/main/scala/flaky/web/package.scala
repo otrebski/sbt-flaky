@@ -25,6 +25,7 @@ package object web {
     }
 
     html(
+      head(link(rel:="stylesheet", href := "report.css")),
       body(
         h1("Flaky test report"),
         h4(a(href := reportFile.getName, "Report for last build")),

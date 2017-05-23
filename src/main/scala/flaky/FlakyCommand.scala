@@ -5,7 +5,7 @@ import java.io.File
 import flaky.FlakyPlugin._
 import flaky.history._
 import flaky.report.{SlackReport, TextReport}
-import flaky.web.{HistoryHtmlReport, HtmlSinglePage}
+import flaky.web.{HistoryHtmlReport, HtmlSinglePage, ReportCss}
 import sbt._
 
 object FlakyCommand {
@@ -154,6 +154,7 @@ object FlakyCommand {
       log.info(s"History HTML report saved in ${fileHistoryHtmlReport.getAbsolutePath}")
     }
     Io.writeToFile(new File(flakyReportsDirHtml, "index.html"), web.indexHtml(fileHtmlReport, maybeHistoryReports.map(_ => historyFile())))
+    Io.writeToFile(new File(flakyReportsDirHtml, "report.css"), ReportCss.styleSheetText)
   }
 
 
