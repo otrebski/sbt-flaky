@@ -1,10 +1,10 @@
-package flaky.history
+package flaky.web
 
 import java.io.File
 import java.text.SimpleDateFormat
 
 import flaky.Io
-import flaky.report.HtmlSinglePage
+import flaky.history._
 
 import scala.collection.immutable
 import scala.collection.immutable.Range
@@ -172,7 +172,7 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
         p(grouped.better.map(processFunction).toArray: _*),
         hr(),
         processChanges(historyReport, git),
-        HtmlSinglePage.footer()
+        footer()
       )
     )
     page.render
