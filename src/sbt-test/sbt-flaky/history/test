@@ -1,7 +1,6 @@
 > flaky times=2
 > flaky times=3
 $ exists history
-$ exists target/flaky-test-reports/historyTrends.txt
 $ exists target/flaky-test-reports-html/flaky-report-history.html
 $ exists target/flaky-test-reports-html/flaky-report.html
 $ exists target/flaky-test-reports-html/index.html

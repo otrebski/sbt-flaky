@@ -118,11 +118,6 @@ object FlakyCommand {
     Io.writeToFile(new File(flakyReportsDir, "report.txt"), textReport)
     log.info(textReport)
 
-    historyOpt.foreach { historyReport =>
-      val textReport = new TextHistoryReportRenderer().renderHistory(historyReport, Git(baseDirectory))
-      log.info(textReport)
-      Io.writeToFile(new File(flakyReportsDir, "historyTrends.txt"), textReport)
-    }
   }
 
   private def slackReport(baseDirectory: File, flakyReportsDir: File, slackHook: Option[String], report: FlakyTestReport, log: Logger) = {

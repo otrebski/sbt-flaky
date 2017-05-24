@@ -11,7 +11,6 @@ import scalatags.Text
 import scalatags.Text.all._
 
 
-
 object HistoryHtmlReport extends App with HistoryReportRenderer {
   if (args.headOption.isEmpty) {
     println("Pass path to dir with history reports (zip files)")
@@ -59,11 +58,10 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
   }
 
   override def renderHistory(historyReport: HistoryReport, git: Git): String = {
-    val grouped = historyReport.grouped()
 
     val processFunction: (HistoryStat => Text.Modifier) = {
       t =>
-        val failuresRate: Seq[Float] = t.stats.map(_.failureRate)
+        val failuresRate: Seq[Float] = t.stats.map(_.failureRate())
         p(
           h3(ReportCss.testClass, s"Class: ${t.test.classNameOnly()}"),
           p(ReportCss.testName, s"Test: ${t.test.test}"),
@@ -73,12 +71,28 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
 
     val stats: List[HistoryStat] = historyReport.historyStat()
 
+    val summaryFailures: immutable.List[Float] = stats
+      .flatMap(_.stats)
+      .groupBy(_.date)
+      .map {
+        case (date, s1) =>
+          s1.foldLeft(Stat(date, 0, 0))((acc, stat) =>
+            Stat(date, acc.failedCount + stat.failedCount, acc.totalRun + stat.totalRun)
+          )
+      }
+      .toList
+      .sortBy(_.date)
+      .map(_.failureRate())
+
     val page = html(
       head(link(rel := "stylesheet", href := "report.css")),
       body(
         h1(s"History trends of flaky tests for ${historyReport.project}"),
         p(s"Generate at ${historyReport.date}"),
-        p(stats.map(processFunction).toArray: _*),
+        h3("Average failure rate"),
+        p(SvgChart.chart(summaryFailures)),
+        h3("Failures per class"),
+        p(stats.filter(_.stats.exists(_.failedCount > 0)).map(processFunction).toArray: _*),
         hr(),
         processChanges(historyReport, git),
         footer()
