@@ -10,20 +10,22 @@ import scalatags.Text.all._
 
 object HtmlSinglePage {
 
-  def pageSource(flakyTestReport: FlakyTestReport): String = {
+  def pageSource(flakyTestReport: FlakyTestReport, historyFile: Option[String]): String = {
     if (flakyTestReport.flakyTests.exists(_.failures > 0)) {
-      renderFailed(flakyTestReport)
+      renderFailed(flakyTestReport, historyFile)
     } else {
-      renderNoFailures(flakyTestReport)
+      renderNoFailures(flakyTestReport, historyFile)
     }
   }
-//link rel="stylesheet" href="/css/default-revision127820f2c48d21381bb6eea8664c2658.css" />
-  def renderNoFailures(flakyTestReport: FlakyTestReport): String =
+
+  //link rel="stylesheet" href="/css/default-revision127820f2c48d21381bb6eea8664c2658.css" />
+  def renderNoFailures(flakyTestReport: FlakyTestReport, historyFile: Option[String]): String =
     html(
-      head(link(rel:="stylesheet", href := "report.css")),
+      head(link(rel := "stylesheet", href := "report.css")),
       body(
         h1("Flaky test result"),
-        p(ReportCss.allSuccess, "All tests were successful")
+        p(ReportCss.allSuccess, "All tests were successful"),
+        p(historyFile.map(f => a(href:=s"$f", "History trends")))
       )
     ).render
 
@@ -33,8 +35,8 @@ object HtmlSinglePage {
     val red = failurePercent.toInt
     val green = 100 - red
     svg(svgWidth := "100", svgHeight := "20")(
-      rect(svgWidth := s"$green", svgHeight := 20, fill :="rgb(0,195,0)"),
-      rect(x := s"$green", svgWidth := s"$red", svgHeight := 20, fill :="rgb(255,0,0)"),
+      rect(svgWidth := s"$green", svgHeight := 20, fill := "rgb(0,195,0)"),
+      rect(x := s"$green", svgWidth := s"$red", svgHeight := 20, fill := "rgb(255,30,30)"),
       text(x := "10", y := "15")(f"$failurePercent%.2f%%")
     )
   }
@@ -44,7 +46,7 @@ object HtmlSinglePage {
   }
 
 
-  def renderFailed(flakyTestReport: FlakyTestReport): String = {
+  def renderFailed(flakyTestReport: FlakyTestReport, historyFile: Option[String]): String = {
     val timestamp = flakyTestReport.timeDetails.start
     val projectName = flakyTestReport.projectName
     val flaky = flakyTestReport.flakyTests
@@ -63,7 +65,12 @@ object HtmlSinglePage {
           "(It is not a test) - There is no  test name in JUnit report"
         } else flaky.test.test
         tr(
-          td(ReportCss.summaryTableTd, a(href := s"#${flaky.test.clazz}", flaky.test.classNameOnly())),
+          td(
+            ReportCss.summaryTableTd,
+            a(href := s"#${flaky.test.clazz}", flaky.test.classNameOnly()),
+            " ",
+            historyFile.map(f => a(href:=s"$f#${flaky.test.clazz}_${flaky.test.test}", img(src:="history.png")))
+          ),
           td(ReportCss.summaryTableTd, testName),
           td(ReportCss.summaryTableTd, failureBarChar(flaky.failurePercent()))
         )
@@ -116,8 +123,10 @@ object HtmlSinglePage {
               val text =
                 p(
                   h4(
+                    id:=s"${test.clazz}_${test.test}",
                     ReportCss.testName,
                     failureBarChar(fc.runNames.size, testRunsCount),
+                    historyFile.map(f => a(href:=s"$f#${test.clazz}_${test.test}", img(src:="history.png"))),
                     s" ${test.test} failed ${fc.runNames.size} times"
                   ),
                   p(b(s"Stacktrace:"), code(fc.stacktrace)),
@@ -137,9 +146,10 @@ object HtmlSinglePage {
 
     }
     html(
-      head(link(rel:="stylesheet", href := "report.css")),
+      head(link(rel := "stylesheet", href := "report.css")),
       body(
         summaryAttachment,
+        p(historyFile.map(f => h3(a(href:=s"$f", "History trends")))),
         p(
           failedAttachments.toArray: _*
         ),

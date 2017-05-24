@@ -1,21 +1,35 @@
 package flaky
 
-import java.io.{BufferedWriter, OutputStreamWriter, PrintWriter}
+import java.io._
 import java.net.{HttpURLConnection, URL}
 import java.util.Scanner
 
 import sbt.{File, Logger}
 
+import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
 object Io {
 
-  def writeToFile(file:File, content:String ): Unit = {
+  def writeToFile(file: File, content: String): Unit = {
     new PrintWriter(file) {
       write(content)
       close()
     }
   }
+
+  def writeToFile(file: File, content: Array[Byte]): Unit = {
+    new FileOutputStream(file) {
+      write(content)
+      close()
+    }
+  }
+
+  def writeToFile(file: File, is: InputStream): Unit = {
+    val array: Array[Byte] = Stream.continually(is.read).takeWhile(_ != -1).map(_.toByte).toArray
+    writeToFile(file, array)
+  }
+
 
   def sendToSlack(webHook: String, jsonMsg: String, log: Logger, backupFile: File): Unit = {
     log.info("Sending report to slack")
@@ -34,11 +48,11 @@ object Io {
 
       // Writing the post data to the HTTP request body
       log.debug(jsonMsg)
-      val httpRequestBodyWriter = new BufferedWriter(new OutputStreamWriter(urlConnection.getOutputStream()))
+      val httpRequestBodyWriter = new BufferedWriter(new OutputStreamWriter(urlConnection.getOutputStream))
       httpRequestBodyWriter.write(jsonMsg)
       httpRequestBodyWriter.close()
 
-      val scanner = new Scanner(urlConnection.getInputStream())
+      val scanner = new Scanner(urlConnection.getInputStream)
       log.debug("Response from SLACK:")
       while (scanner.hasNextLine) {
         log.debug(s"Response from SLACK: ${scanner.nextLine()}")
