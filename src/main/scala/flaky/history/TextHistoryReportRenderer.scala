@@ -7,7 +7,7 @@ class TextHistoryReportRenderer extends HistoryReportRenderer {
     def summary(historyStat: List[HistoryStat]) = {
       historyStat
         .map { t =>
-          val failures = t.stats.map(s => f"${s.failureRate}%1.1f%%").mkString(", ")
+          val failures = t.stats.map(s => f"${s.failureRate()}%1.1f%%").mkString(", ")
           s"${t.test.clazz}.${t.test.test} Failure rate: $failures"
         }
         .toSet

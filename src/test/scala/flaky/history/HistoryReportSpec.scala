@@ -5,12 +5,12 @@ import org.scalatest.{Matchers, WordSpec}
 
 
 class HistoryReportSpec extends WordSpec with Matchers {
-  val worseStat: List[Stat] = List(Stat("0", 0), Stat("1", 0.2f), Stat("2", 0.3f))
-  val improvingStat: List[Stat] = List(Stat("0", 0), Stat("1", 0.4f), Stat("2", 0.3f))
-  val goodStat: List[Stat] = List(Stat("0", 0), Stat("1", 0f), Stat("2", 0f))
-  val fixedStat: List[Stat] = List(Stat("0", 0), Stat("1", 0.1f), Stat("2", 0f))
-  val newCaseStat: List[Stat] = List(Stat("0", 0), Stat("1", 0f), Stat("2", 0.1f))
-  val noChange: List[Stat] = List(Stat("0", 0), Stat("1", 0.1f), Stat("2", 0.1f))
+  val worseStat: List[Stat] = List(Stat("0", 0, 1), Stat("1", 2, 10), Stat("2", 3, 10))
+  val improvingStat: List[Stat] = List(Stat("0", 0, 10), Stat("1", 4, 10), Stat("2", 3, 10))
+  val goodStat: List[Stat] = List(Stat("0", 0, 10), Stat("1", 0, 10), Stat("2", 0, 10))
+  val fixedStat: List[Stat] = List(Stat("0", 0, 10), Stat("1", 1, 10), Stat("2", 0, 10))
+  val newCaseStat: List[Stat] = List(Stat("0", 0, 10), Stat("1", 0, 10), Stat("2", 1, 10))
+  val noChange: List[Stat] = List(Stat("0", 0, 10), Stat("1", 1, 10), Stat("2", 1, 10))
   val test = Test("a", "b")
   "HistoryReport" should {
     "group worse test result" in {
@@ -34,16 +34,16 @@ class HistoryReportSpec extends WordSpec with Matchers {
       result shouldBe Grouped(newCases = List(HistoryStat(test, newCaseStat)))
     }
     "group new cases test result if having only one result" in {
-      val result: Grouped = HistoryReport.groupTestResult(Grouped(), test, List(Stat("0", 0.1f)))
-      result shouldBe Grouped(newCases = List(HistoryStat(test, List(Stat("0", 0.1f)))))
+      val result: Grouped = HistoryReport.groupTestResult(Grouped(), test, List(Stat("0", 1, 10)))
+      result shouldBe Grouped(newCases = List(HistoryStat(test, List(Stat("0", 1, 10)))))
     }
     "group no changed test result" in {
       val result: Grouped = HistoryReport.groupTestResult(Grouped(), test, noChange)
       result shouldBe Grouped(noChange = List(HistoryStat(test, noChange)))
     }
     "group good test result if having only one result" in {
-      val result: Grouped = HistoryReport.groupTestResult(Grouped(), test, List(Stat("0", 0)))
-      result shouldBe Grouped(good = List(HistoryStat(test, List(Stat("0", 0)))))
+      val result: Grouped = HistoryReport.groupTestResult(Grouped(), test, List(Stat("0", 0, 10)))
+      result shouldBe Grouped(good = List(HistoryStat(test, List(Stat("0", 0, 10)))))
     }
 
     "group tests summary" in {
@@ -51,27 +51,27 @@ class HistoryReportSpec extends WordSpec with Matchers {
       val fixedTest = Test("fixed", "test")
       val worseTest = Test("worse", "fixed")
       val historyStat: List[TestSummary] = List(
-        TestSummary(goodTest, Stat("0", 0)),
-        TestSummary(goodTest, Stat("1", 0)),
-        TestSummary(goodTest, Stat("2", 0)),
+        TestSummary(goodTest, Stat("0", 0, 1)),
+        TestSummary(goodTest, Stat("1", 0, 1)),
+        TestSummary(goodTest, Stat("2", 0, 1)),
 
-        TestSummary(fixedTest, Stat("0", 0)),
-        TestSummary(fixedTest, Stat("1", 0.1f)),
-        TestSummary(fixedTest, Stat("2", 0)),
+        TestSummary(fixedTest, Stat("0", 0, 1)),
+        TestSummary(fixedTest, Stat("1", 1, 10)),
+        TestSummary(fixedTest, Stat("2", 0, 1)),
 
-        TestSummary(worseTest, Stat("0", 0)),
-        TestSummary(worseTest, Stat("1", 0.1f)),
-        TestSummary(worseTest, Stat("2", 0.2f))
+        TestSummary(worseTest, Stat("0", 0, 10)),
+        TestSummary(worseTest, Stat("1", 1, 10)),
+        TestSummary(worseTest, Stat("2", 2, 10))
       )
 
       val grouped = HistoryReport.grouped(historyStat)
 
       grouped.better shouldBe List.empty
-      grouped.fixed shouldBe List(HistoryStat(fixedTest, List(Stat("0", 0), Stat("1", 0.1f), Stat("2", 0))))
-      grouped.good shouldBe List(HistoryStat(goodTest, List(Stat("0", 0), Stat("1", 0), Stat("2", 0))))
+      grouped.fixed shouldBe List(HistoryStat(fixedTest, List(Stat("0", 0, 1), Stat("1", 1, 10), Stat("2", 0, 1))))
+      grouped.good shouldBe List(HistoryStat(goodTest, List(Stat("0", 0, 1), Stat("1", 0, 1), Stat("2", 0, 1))))
       grouped.newCases shouldBe List.empty
       grouped.noChange shouldBe List.empty
-      grouped.worse shouldBe List(HistoryStat(worseTest, List(Stat("0", 0), Stat("1", 0.1f), Stat("2", 0.2f))))
+      grouped.worse shouldBe List(HistoryStat(worseTest, List(Stat("0", 0, 1), Stat("1", 1, 10), Stat("2", 2, 10))))
     }
 
     "group historical runs" in {
@@ -94,8 +94,8 @@ class HistoryReportSpec extends WordSpec with Matchers {
       val grouped = HistoryReport("Project", "2014", List(historicalRun1, historicalRun2)).grouped()
       grouped.better shouldBe List.empty
       grouped.fixed shouldBe List.empty
-      grouped.newCases shouldBe List(HistoryStat(Test("t", "t2"), List(Stat("1", 0), Stat("2", 50f))))
-      grouped.good shouldBe List(HistoryStat(Test("t", "t1"), List(Stat("1", 0), Stat("2", 0))))
+      grouped.newCases shouldBe List(HistoryStat(Test("t", "t2"), List(Stat("1", 0, 1), Stat("2", 1, 2))))
+      grouped.good shouldBe List(HistoryStat(Test("t", "t1"), List(Stat("1", 0, 1), Stat("2", 0, 1))))
       grouped.noChange shouldBe List.empty
       grouped.worse shouldBe List.empty
 

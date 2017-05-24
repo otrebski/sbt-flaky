@@ -4,7 +4,15 @@ import flaky._
 
 case class HistoricalRun(historyReportDescription: HistoryReportDescription, report: FlakyTestReport)
 
-case class Stat(date: String, failureRate: Float)
+case class Stat(date: String, failedCount: Int, totalRun: Int) {
+  def failureRate(): Float = {
+    if (totalRun == 0) {
+      0f
+    } else {
+      (failedCount * 100f) / totalRun
+    }
+  }
+}
 
 case class TestSummary(test: Test, stat: Stat)
 
@@ -33,10 +41,15 @@ case class HistoryReport(project: String, date: String, historicalRuns: List[His
         .flatMap(_.testCases)
         .map(_.test)
         .distinct
+
     for {
       test <- tests
       historicalRun <- historicalRuns
-    } yield TestSummary(test, Stat(historicalRun.historyReportDescription.timestamp.toString, historicalRun.report.flakyTests.find(_.test == test).map(_.failurePercent()).getOrElse(0f)))
+    } yield TestSummary(test, Stat(
+      historicalRun.historyReportDescription.timestamp.toString,
+      historicalRun.report.flakyTests.find(_.test == test).map(_.failedRuns.size).getOrElse(0),
+      historicalRun.report.flakyTests.find(_.test == test).map(_.totalRun).getOrElse(0))
+    )
   }
 
   def historyStat(): List[HistoryStat] = {
@@ -67,9 +80,9 @@ object HistoryReport {
   def groupTestResult(group: Grouped, test: Test, stats: List[Stat]): Grouped = {
     if (stats.size > 1) {
       val last2 = stats.drop(stats.size - 2)
-      val ratePrevious = last2.head.failureRate
-      val last = last2(1).failureRate
-      if (!stats.exists(_.failureRate > 0)) {
+      val ratePrevious = last2.head.failureRate()
+      val last = last2(1).failureRate()
+      if (!stats.exists(p = _.failureRate() > 0)) {
         group.copy(good = HistoryStat(test, stats) :: group.good)
       } else if (ratePrevious == 0 && last > 0) {
         group.copy(newCases = HistoryStat(test, stats) :: group.newCases)
@@ -84,7 +97,7 @@ object HistoryReport {
       }
     } else {
       stats.headOption.map { firstStat =>
-        if (firstStat.failureRate > 0) {
+        if (firstStat.failureRate() > 0) {
           group.copy(newCases = HistoryStat(test, stats) :: group.newCases)
         } else {
           group.copy(good = HistoryStat(test, stats) :: group.good)
