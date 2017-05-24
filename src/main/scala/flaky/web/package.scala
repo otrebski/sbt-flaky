@@ -21,11 +21,15 @@ package object web {
   def indexHtml(reportFile: File, historyFile: Option[File]): String = {
     val history = historyFile match {
       case Some(fileName) => a(href := fileName.getName, "History trends")
-      case None => p("History trends report is not created. To enable history check documentation at ", a(href := "https://github.com/otrebski/sbt-flaky", "https://github.com/otrebski/sbt-flaky"))
+      case None =>
+        p(
+          "History trends report is not created. To enable history check documentation at ",
+          a(href := "https://github.com/otrebski/sbt-flaky", "https://github.com/otrebski/sbt-flaky")
+        )
     }
 
     html(
-      head(link(rel:="stylesheet", href := "report.css")),
+      head(link(rel := "stylesheet", href := "report.css")),
       body(
         h1("Flaky test report"),
         h4(a(href := reportFile.getName, "Report for last build")),
