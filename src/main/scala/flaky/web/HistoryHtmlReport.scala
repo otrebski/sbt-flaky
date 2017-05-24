@@ -71,22 +71,14 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
         )
     }
 
+    val stats: List[HistoryStat] = historyReport.historyStat()
+
     val page = html(
       head(link(rel := "stylesheet", href := "report.css")),
       body(
         h1(s"History trends of flaky tests for ${historyReport.project}"),
         p(s"Generate at ${historyReport.date}"),
-        h2("New cases:"),
-        p(grouped.newCases.map(processFunction).toArray: _*),
-        hr(), hr(),
-        h2("Worse:"),
-        p(grouped.worse.map(processFunction).toArray: _*),
-        hr(), hr(),
-        h2("No change:"),
-        p(grouped.noChange.map(processFunction).toArray: _*),
-        hr(), hr(),
-        h2("Improvment:"),
-        p(grouped.better.map(processFunction).toArray: _*),
+        p(stats.map(processFunction).toArray: _*),
         hr(),
         processChanges(historyReport, git),
         footer()
