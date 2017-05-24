@@ -10,10 +10,6 @@ import scalatags.Text.all._
 
 object HtmlSinglePage {
 
-  val testNameColor = "MistyRose"
-  val testClassColor = "LightPink"
-
-
   def pageSource(flakyTestReport: FlakyTestReport): String = {
     if (flakyTestReport.flakyTests.exists(_.failures > 0)) {
       renderFailed(flakyTestReport)
@@ -21,22 +17,24 @@ object HtmlSinglePage {
       renderNoFailures(flakyTestReport)
     }
   }
-
-  def renderNoFailures(flakyTestReport: FlakyTestReport): String = html(
-    body(
-      h1("Flaky test result"),
-      p(backgroundColor := "#33AA33", "All tests were successful")
-    )
-  ).render
+//link rel="stylesheet" href="/css/default-revision127820f2c48d21381bb6eea8664c2658.css" />
+  def renderNoFailures(flakyTestReport: FlakyTestReport): String =
+    html(
+      head(link(rel:="stylesheet", href := "report.css")),
+      body(
+        h1("Flaky test result"),
+        p(ReportCss.allSuccess, "All tests were successful")
+      )
+    ).render
 
   def failureBarChar(failurePercent: Float): Text.TypedTag[String] = {
-    import scalatags.Text.svgAttrs.{x, y}
+    import scalatags.Text.svgAttrs.{fill, x, y, height => svgHeight, width => svgWidth}
     import scalatags.Text.svgTags._
     val red = failurePercent.toInt
     val green = 100 - red
-    svg(width := "100", height := "20")(
-      rect(width := s"$green", height := 20, style := "fill:rgb(0,195,0)"),
-      rect(x := s"$green", width := s"$red", height := 20, style := "fill:rgb(255,0,0)"),
+    svg(svgWidth := "100", svgHeight := "20")(
+      rect(svgWidth := s"$green", svgHeight := 20, fill :="rgb(0,195,0)"),
+      rect(x := s"$green", svgWidth := s"$red", svgHeight := 20, fill :="rgb(255,0,0)"),
       text(x := "10", y := "15")(f"$failurePercent%.2f%%")
     )
   }
@@ -65,13 +63,13 @@ object HtmlSinglePage {
           "(It is not a test) - There is no  test name in JUnit report"
         } else flaky.test.test
         tr(
-          td(borderTop := "1px solid", a(href := s"#${flaky.test.clazz}", flaky.test.classNameOnly())),
-          td(borderTop := "1px solid", testName),
-          td(borderTop := "1px solid", failureBarChar(flaky.failurePercent()))
+          td(ReportCss.summaryTableTd, a(href := s"#${flaky.test.clazz}", flaky.test.classNameOnly())),
+          td(ReportCss.summaryTableTd, testName),
+          td(ReportCss.summaryTableTd, failureBarChar(flaky.failurePercent()))
         )
       }
 
-    val summaryTable = table(border := "1px solid", backgroundColor := "#CCCCCC",
+    val summaryTable = table(ReportCss.summaryTable,
       thead(
         th(b("Class")),
         th("Test"),
@@ -91,17 +89,17 @@ object HtmlSinglePage {
 
     def message(fc: FlakyCase) = {
       val message = fc.message
-      val lightBorder = css("border") := "1px solid lightgray"
+
       if (fc.allMessages.size == 1) {
-        p(lightBorder, b("Message: "), code(message))
+        p(ReportCss.message, b("Message: "), code(message))
       } else {
         p(
-          p(lightBorder,
+          p(ReportCss.message,
             b("Message common part:"),
             code(message)
           ),
           p("Detailed messages:"), ul(
-            fc.allMessages.map(m => li(lightBorder, code(m))).toArray: _*
+            fc.allMessages.map(m => li(ReportCss.message, code(m))).toArray: _*
           )
         )
       }
@@ -118,7 +116,7 @@ object HtmlSinglePage {
               val text =
                 p(
                   h4(
-                    css("background-color") := testNameColor,
+                    ReportCss.testName,
                     failureBarChar(fc.runNames.size, testRunsCount),
                     s" ${test.test} failed ${fc.runNames.size} times"
                   ),
@@ -131,7 +129,7 @@ object HtmlSinglePage {
         p(hr(),
           h3(
             id := testClass,
-            css("background-color") := testClassColor,
+            ReportCss.testClass,
             s"Details for ${testClass.split('.').lastOption.getOrElse("<?>")}"
           ),
           flakyTestsDescription
@@ -139,6 +137,7 @@ object HtmlSinglePage {
 
     }
     html(
+      head(link(rel:="stylesheet", href := "report.css")),
       body(
         summaryAttachment,
         p(
