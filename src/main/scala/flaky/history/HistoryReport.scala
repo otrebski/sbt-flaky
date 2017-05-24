@@ -26,22 +26,28 @@ case class Grouped(
 
 case class HistoryReport(project: String, date: String, historicalRuns: List[HistoricalRun]) {
 
+  def testSummary(historicalRuns: List[HistoricalRun]): List[TestSummary] = {
+    val tests =
+      historicalRuns
+        .flatMap(_.report.testRuns)
+        .flatMap(_.testCases)
+        .map(_.test)
+        .distinct
+    for {
+      test <- tests
+      historicalRun <- historicalRuns
+    } yield TestSummary(test, Stat(historicalRun.historyReportDescription.timestamp.toString, historicalRun.report.flakyTests.find(_.test == test).map(_.failurePercent()).getOrElse(0f)))
+  }
+
+  def historyStat(): List[HistoryStat] = {
+    testSummary(historicalRuns)
+      .groupBy(_.test)
+      .map {
+        case (a, b) => HistoryStat(a, b.sortBy(_.stat.date).map(_.stat))
+      }.toList.sortBy(_.test.test)
+  }
+
   def grouped(): Grouped = {
-
-    def testSummary(historicalRuns: List[HistoricalRun]): List[TestSummary] = {
-      val tests =
-        historicalRuns
-          .flatMap(_.report.testRuns)
-          .flatMap(_.testCases)
-          .map(_.test)
-          .distinct
-
-      for {
-        test <- tests
-        historicalRun <- historicalRuns
-      } yield TestSummary(test, Stat(historicalRun.historyReportDescription.timestamp.toString, historicalRun.report.flakyTests.find(_.test == test).map(_.failurePercent()).getOrElse(0f)))
-    }
-
     HistoryReport.grouped(testSummary(historicalRuns))
   }
 }
