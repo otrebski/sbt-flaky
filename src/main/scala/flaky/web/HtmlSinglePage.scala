@@ -36,7 +36,7 @@ object HtmlSinglePage {
     val green = 100 - red
     svg(svgWidth := "100", svgHeight := "20")(
       rect(svgWidth := s"$green", svgHeight := 20, fill := "rgb(0,195,0)"),
-      rect(x := s"$green", svgWidth := s"$red", svgHeight := 20, fill := "rgb(255,0,0)"),
+      rect(x := s"$green", svgWidth := s"$red", svgHeight := 20, fill := "rgb(255,30,30)"),
       text(x := "10", y := "15")(f"$failurePercent%.2f%%")
     )
   }
@@ -123,6 +123,7 @@ object HtmlSinglePage {
               val text =
                 p(
                   h4(
+                    id:=s"${test.clazz}_${test.test}",
                     ReportCss.testName,
                     failureBarChar(fc.runNames.size, testRunsCount),
                     historyFile.map(f => a(href:=s"$f#${test.clazz}_${test.test}", img(src:="history.png"))),
