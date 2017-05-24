@@ -21,7 +21,7 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
   println("Loading history data")
   private val historyReport1 = history.createHistoryReport()
   println("History data loaded")
-  Io.writeToFile(new File("historyChart.html"), renderHistory(historyReport1, Git(new File("."))))
+  Io.writeToFile(new File("historyChart.html"), renderHistory(historyReport1, Git(new File(".")), ""))
 
   private def processChanges(historyReport: HistoryReport, git: Git) = {
     val tuples = historyReport
@@ -57,13 +57,13 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
     p(h3("Changes:"), diffsHtml)
   }
 
-  override def renderHistory(historyReport: HistoryReport, git: Git): String = {
+  override def renderHistory(historyReport: HistoryReport, git: Git, currentResultFile: String): String = {
 
     val processFunction: (HistoryStat => Text.Modifier) = {
       t =>
         val failuresRate: Seq[Float] = t.stats.map(_.failureRate())
         p(
-          h3(ReportCss.testClass, s"Class: ${t.test.classNameOnly()}"),
+          h3(ReportCss.testClass, s"Class: ${t.test.classNameOnly()}", id := s"${t.test.clazz}_${t.test.test}"),
           p(ReportCss.testName, s"Test: ${t.test.test}"),
           SvgChart.chart(failuresRate.toList)
         )
@@ -91,6 +91,7 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
         p(s"Generate at ${historyReport.date}"),
         h3("Average failure rate"),
         p(SvgChart.chart(summaryFailures)),
+        p(a(href := currentResultFile, h3("Last detailed report"))),
         h3("Failures per class"),
         p(stats.filter(_.stats.exists(_.failedCount > 0)).map(processFunction).toArray: _*),
         hr(),

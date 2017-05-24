@@ -124,7 +124,6 @@ object FlakyCommand {
     slackHook.foreach { hookId =>
       val slackMsg = SlackReport.render(report)
       Io.sendToSlack(hookId, slackMsg, log, new File(flakyReportsDir, "slack.json"))
-
     }
   }
 
@@ -134,7 +133,7 @@ object FlakyCommand {
                         flakyReportsDirHtml: File,
                         git: Git,
                         log: Logger): Unit = {
-    val htmlReportSource = HtmlSinglePage.pageSource(report)
+    val htmlReportSource = HtmlSinglePage.pageSource(report, maybeHistoryReports.map(_ => "flaky-report-history.html"))
     flakyReportsDirHtml.mkdirs()
     val fileHtmlReport = new File(flakyReportsDirHtml, "flaky-report.html")
     Io.writeToFile(fileHtmlReport, htmlReportSource)
@@ -144,12 +143,14 @@ object FlakyCommand {
 
     maybeHistoryReports.foreach { historyReport =>
       val fileHistoryHtmlReport = historyFile()
-      val historyHtmlReport = HistoryHtmlReport.renderHistory(historyReport, git)
+      val historyHtmlReport = HistoryHtmlReport.renderHistory(historyReport, git, "flaky-report.html")
       Io.writeToFile(fileHistoryHtmlReport, historyHtmlReport)
       log.info(s"History HTML report saved in ${fileHistoryHtmlReport.getAbsolutePath}")
     }
     Io.writeToFile(new File(flakyReportsDirHtml, "index.html"), web.indexHtml(fileHtmlReport, maybeHistoryReports.map(_ => historyFile())))
     Io.writeToFile(new File(flakyReportsDirHtml, "report.css"), ReportCss.styleSheetText)
+    val is = this.getClass.getClassLoader.getResourceAsStream("chart-down-color.png")
+    Io.writeToFile(new File(flakyReportsDirHtml, "history.png"),is)
   }
 
 
