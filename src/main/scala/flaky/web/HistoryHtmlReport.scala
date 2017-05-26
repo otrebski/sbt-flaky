@@ -9,6 +9,7 @@ import flaky.history._
 import scala.collection.immutable
 import scalatags.Text
 import scalatags.Text.all._
+import scalatags.stylesheet.Cls
 
 
 object HistoryHtmlReport extends App with HistoryReportRenderer {
@@ -30,31 +31,43 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
       .zipWithIndex
 
     val diffs = tuples.zip(tuples.tail)
-    val diffsHtml: Seq[Text.TypedTag[String]] = diffs.map {
+    val diffsHtml: immutable.Seq[Text.TypedTag[String]] = diffs.flatMap {
       case ((hrdPrev, _), (hrdNext, index)) =>
         val commits: Option[immutable.Seq[GitCommit]] = for {
           commitPrev <- hrdPrev.gitCommitHash
           commitNext <- hrdNext.gitCommitHash
         } yield git.commitsList(commitPrev, commitNext).getOrElse(List.empty)
 
-        val changes = if (commits.toList.flatten.isEmpty) {
-          p("No changes")
-        } else {
-          val commitsList: Array[Text.TypedTag[String]] = commits
-            .map(c => c.map(commit => li(s"${commit.id}: ${commit.author} => ${commit.shortMsg}")))
-            .map(ol(_))
-            .toArray
-          p(
-            s"Changes ${hrdPrev.gitCommitHash.getOrElse("?")} -> ${hrdNext.gitCommitHash.getOrElse("?")}",
-            commitsList
-          )
-        }
-        p(
-          h4(s"Build $index ${new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(hrdNext.timestamp)}"),
-          changes
+        // Build/hashes  | id | author | shortMsg
+        val build = s"$index - ${new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(hrdNext.timestamp)}"
+
+        val listOfCommits: immutable.Seq[GitCommit] = commits.toList.flatten.reverse
+
+        def commitToRow(first: GitCommit, style: Cls) = Seq(
+          td(style, first.id),
+          td(style, first.author),
+          td(style, first.shortMsg)
         )
+
+        val changes: Seq[Text.TypedTag[String]] = listOfCommits match {
+          case Nil => Seq(tr(td(ReportCss.diffTableTdBuild, build), commitToRow(GitCommit("-", "-", "-"), ReportCss.diffTableTdFirstCommit)))
+          case first :: tail =>
+            tr(ReportCss.diffTableTr,
+              td(rowspan := s"${tail.size + 1}", build, ReportCss.diffTableTdBuild), commitToRow(first, ReportCss.diffTableTdFirstCommit)) ::
+              tail.map { c => tr(ReportCss.diffTableTr, commitToRow(c, ReportCss.diffTableTdCommit)) }
+        }
+        changes
     }
-    p(h2(ReportCss.subtitle, "Changes"), diffsHtml)
+    val diffsTable = table(ReportCss.diffTable,
+      tr(
+        th(ReportCss.diffTableTh, "Build"),
+        th(ReportCss.diffTableTh, "Id"),
+        th(ReportCss.diffTableTh, "Author"),
+        th(ReportCss.diffTableTh, "Commit message")
+      ),
+      diffsHtml
+    )
+    p(h2(ReportCss.subtitle, "Changes"), diffsTable)
   }
 
   override def renderHistory(historyReport: HistoryReport, git: Git, currentResultFile: String): String = {
@@ -92,7 +105,6 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
       head(link(rel := "stylesheet", href := "report.css")),
       body(
         h1(ReportCss.title, s"History trends of flaky tests for ${historyReport.project}"),
-        p(s"Generate at ${historyReport.date}"),
         h2(ReportCss.subtitle, "Average failure rate"),
         p(SvgChart.chart(summaryFailures)),
         processChanges(historyReport, git),
@@ -100,7 +112,7 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
         h2(ReportCss.subtitle, "Failures per class"),
         p(stats.filter(_.stats.exists(_.failedCount > 0)).map(processFunction).toArray: _*),
         hr(),
-
+        p(s"Generate at ${historyReport.date}"),
         footer()
       )
     )
