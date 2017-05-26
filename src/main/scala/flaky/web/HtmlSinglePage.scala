@@ -23,7 +23,7 @@ object HtmlSinglePage {
     html(
       head(link(rel := "stylesheet", href := "report.css")),
       body(
-        h1("Flaky test result"),
+        h1(ReportCss.title, "Flaky test result"),
         p(ReportCss.allSuccess, "All tests were successful"),
         p(historyFile.map(f => a(href:=s"$f", "History trends")))
       )
@@ -86,8 +86,8 @@ object HtmlSinglePage {
     )
     val summaryAttachment =
       p(
-        h1(s"Flaky test result for $projectName at ${new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(timestamp))}"),
-        h2(s"Flaky test result: $failedCount test failed of ${flaky.size} tests. Test were running for $timeSpend [$timeSpendPerIteration/iteration]"),
+        h1(ReportCss.title, s"Flaky test result for $projectName at ${new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(timestamp))}"),
+        h2(ReportCss.subtitle, s"Flaky test result: $failedCount test failed of ${flaky.size} tests. Test were running for $timeSpend [$timeSpendPerIteration/iteration]"),
         p(summaryTable)
       )
 
@@ -126,7 +126,7 @@ object HtmlSinglePage {
                     id:=s"${test.clazz}_${test.test}",
                     ReportCss.testName,
                     failureBarChar(fc.runNames.size, testRunsCount),
-                    historyFile.map(f => a(href:=s"$f#${test.clazz}_${test.test}", img(src:="history.png"))),
+                    historyFile.map(f => a(href:=s"$f#${test.clazz}_${test.test}", img(ReportCss.historyIcon, src:="history.png", alt:="History trends"))),
                     s" ${test.test} failed ${fc.runNames.size} times"
                   ),
                   p(b(s"Stacktrace:"), code(fc.stacktrace)),
@@ -148,6 +148,7 @@ object HtmlSinglePage {
     html(
       head(link(rel := "stylesheet", href := "report.css")),
       body(
+        ReportCss.body,
         summaryAttachment,
         p(historyFile.map(f => h3(a(href:=s"$f", "History trends")))),
         p(

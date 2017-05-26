@@ -1,7 +1,6 @@
 package flaky.web
 
 import scalatags.Text.all._
-//import scalatags.Text.styles._
 import scalatags.stylesheet._
 
 object ReportCss extends StyleSheet {
@@ -12,24 +11,62 @@ object ReportCss extends StyleSheet {
   )
 
   val testClass: Cls = cls(
-    backgroundColor := "LightPink"
+    backgroundColor := "black",
+    color := "#d4d4d4",
+    padding := "5px",
+    margin := "5px",
+    border := "2px solid darkblue",
+    borderRadius := "5px"
   )
 
   val testName: Cls = cls(
-    backgroundColor := "MistyRose"
+    backgroundColor := "lightblue",
+    color := "darkblue",
+    padding := "5px",
+    margin := "5px",
+    border := "1px solid darkblue",
+    borderRadius := "5px"
   )
 
   val message: Cls = cls(
-    border := "1px solid lightgray"
+    border := "1px solid lightgray",
+    padding := "5px"
   )
 
   val summaryTable: Cls = cls(
-    border := "1px solid",
-    backgroundColor := "#CCCCCC"
+    border := "2px dotted",
+    backgroundColor := "lavender"
+
   )
 
   val summaryTableTd: Cls = cls(
-    borderTop := "1px solid"
+    borderTop := "1px solid lightblue",
+    color := "black",
+    paddingLeft := "4px"
   )
 
+  val historyIcon: Cls = cls(
+    paddingLeft := "3px"
+  )
+
+  val title: Cls = cls(
+    border := "solid black 1px",
+    borderRadius := "10px",
+    borderLeftWidth:="10px",
+    color := "darkmagenta",
+    textAlign := "center"
+  )
+
+  val subtitle: Cls = cls(
+    border := "solid black 1px",
+    borderLeftWidth:="5px",
+    borderRadius := "5px",
+    paddingLeft := "20px",
+    color := "#014a08",
+    backgroundColor := "antiquewhite"
+  )
+
+  val body: Cls = cls(
+    backgroundColor := "#fafafa"
+  )
 }

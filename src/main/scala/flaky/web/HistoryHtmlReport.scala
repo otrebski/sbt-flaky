@@ -54,7 +54,7 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
           changes
         )
     }
-    p(h3("Changes:"), diffsHtml)
+    p(h2(ReportCss.subtitle, "Changes"), diffsHtml)
   }
 
   override def renderHistory(historyReport: HistoryReport, git: Git, currentResultFile: String): String = {
@@ -91,15 +91,16 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
     val page = html(
       head(link(rel := "stylesheet", href := "report.css")),
       body(
-        h1(s"History trends of flaky tests for ${historyReport.project}"),
+        h1(ReportCss.title, s"History trends of flaky tests for ${historyReport.project}"),
         p(s"Generate at ${historyReport.date}"),
-        h3("Average failure rate"),
+        h2(ReportCss.subtitle, "Average failure rate"),
         p(SvgChart.chart(summaryFailures)),
+        processChanges(historyReport, git),
         p(a(href := currentResultFile, h3("Last detailed report"))),
-        h3("Failures per class"),
+        h2(ReportCss.subtitle, "Failures per class"),
         p(stats.filter(_.stats.exists(_.failedCount > 0)).map(processFunction).toArray: _*),
         hr(),
-        processChanges(historyReport, git),
+
         footer()
       )
     )
