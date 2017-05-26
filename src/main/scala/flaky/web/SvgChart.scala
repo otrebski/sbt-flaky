@@ -9,9 +9,9 @@ object SvgChart {
   val graphHeight: Int = 300
   private val textArea = 50
 
-  import scalatags.Text.svgAttrs.{fill, points, stroke, strokeWidth, x, x1, x2, y, y1, y2}
-  import scalatags.Text.svgTags._
   import scalatags.Text.all._
+  import scalatags.Text.svgAttrs.{fill, points, stroke, strokeWidth, textAnchor, x, x1, x2, y, y1, y2}
+  import scalatags.Text.svgTags._
 
   object Styles {
     val axisStroke: generic.AttrPair[Builder, String] = stroke := "black"
@@ -46,7 +46,7 @@ object SvgChart {
         x2 := graphWidth,
         y1 := yCoordinate(value),
         y2 := yCoordinate(value),
-        Styles.horizontalLineStroke,Styles.horizontalLineStrokeWidth
+        Styles.horizontalLineStroke, Styles.horizontalLineStrokeWidth
       ) ::
         line(
           x1 := xCoordinate(0) - 4,
@@ -54,25 +54,34 @@ object SvgChart {
           y1 := yCoordinate(value),
           y2 := yCoordinate(value),
           Styles.axisStroke, Styles.axisStrokeWidth
-        ) :: text(x := xCoordinate(0) - 35, y := yCoordinate(value) + 7)(s"$value%") :: Nil
+        ) :: text(x := xCoordinate(0) - 5, y := yCoordinate(value) + 7, textAnchor := "end")(s"$value%") :: Nil
     }
 
-    val ticksX = Range(0, 30).map { index =>
-      line(
-        x1 := xCoordinate(index),
-        x2 := xCoordinate(index),
-        y1 := (yCoordinate(0) - 3).toString,
-        y2 := (yCoordinate(0) + 3).toString,
-        Styles.axisStroke, Styles.axisStrokeWidth
+    val ticksX = Range(0, 30).toList.flatMap { index =>
+      val xc = xCoordinate(index)
+      List(
+        line(
+          x1 := xCoordinate(index),
+          x2 := xCoordinate(index),
+          y1 := (yCoordinate(0) - 3),
+          y2 := (yCoordinate(0) + 3),
+          Styles.axisStroke, Styles.axisStrokeWidth
+        ),
+        text(x := xc, y := yCoordinate(0) + 15, s"${index+1}", textAnchor := "middle")
       )
     }
 
-    val axis = List(line(x1 := textArea.toString, y1 := "0", x2 := textArea.toString, y2 := "300", Styles.axisStroke, Styles.axisStrokeWidth),
-      line(x1 := textArea.toString, y1 := "0", x2 := (textArea - 5).toString, y2 := "10", Styles.axisStroke, Styles.axisStrokeWidth),
-      line(x1 := textArea.toString, y1 := "0", x2 := (textArea + 5).toString, y2 := "10", Styles.axisStroke, Styles.axisStrokeWidth),
-      line(x1 := textArea.toString, y1 := graphHeight.toString, x2 := (graphWidth + textArea).toString, y2 := graphHeight.toString, Styles.axisStroke, Styles.axisStrokeWidth),
-      line(x1 := (graphWidth + textArea - 10).toString, y1 := (graphHeight - 5).toString, x2 := (graphWidth + textArea).toString, y2 := graphHeight.toString, Styles.axisStroke, Styles.axisStrokeWidth),
-      line(x1 := (graphWidth + textArea - 10).toString, y1 := (graphHeight + 5).toString, x2 := (graphWidth + textArea).toString, y2 := graphHeight.toString, Styles.axisStroke, Styles.axisStrokeWidth))
+    val axis = List(
+      line(x1 := textArea, y1 := "0", x2 := textArea, y2 := "300", Styles.axisStroke, Styles.axisStrokeWidth),
+      line(x1 := textArea, y1 := "0", x2 := (textArea - 5), y2 := "10", Styles.axisStroke, Styles.axisStrokeWidth),
+      line(x1 := textArea, y1 := "0", x2 := (textArea + 5), y2 := "10", Styles.axisStroke, Styles.axisStrokeWidth),
+      text(x := textArea + 10, y := 15, s"Failure ratio [%]", textAnchor := "start"),
+      line(x1 := textArea, y1 := graphHeight, x2 := (graphWidth + textArea), y2 := graphHeight, Styles.axisStroke, Styles.axisStrokeWidth),
+      line(x1 := (graphWidth + textArea - 10), y1 := (graphHeight - 5), x2 := (graphWidth + textArea), y2 := graphHeight, Styles.axisStroke, Styles.axisStrokeWidth),
+      line(x1 := (graphWidth + textArea - 10), y1 := (graphHeight + 5), x2 := (graphWidth + textArea), y2 := graphHeight, Styles.axisStroke, Styles.axisStrokeWidth),
+      text(x := (graphWidth + textArea - 10), y := yCoordinate(0) + 35, s"Build nr", textAnchor := "end")
+
+    )
     axis ::: ticksX.toList ::: ticksY.toList ::: majorRicksY.toList
   }
 
@@ -90,7 +99,7 @@ object SvgChart {
 
   def chart(failuresRate: List[Float]): Text.TypedTag[String] = {
     import scalatags.Text.svgAttrs.{height => svgHeight, width => svgWidth}
-    svg(svgWidth := (graphWidth + textArea).toString, svgHeight := (graphHeight + textArea).toString)(
+    svg(svgWidth := (graphWidth + textArea), svgHeight := (graphHeight + textArea))(
       (List(series(failuresRate)) ::: axis()).toArray: _*
     )
   }

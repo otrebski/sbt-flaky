@@ -87,7 +87,8 @@ object HtmlSinglePage {
     val summaryAttachment =
       p(
         h1(ReportCss.title, s"Flaky test result for $projectName at ${new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(timestamp))}"),
-        h2(ReportCss.subtitle, s"Flaky test result: $failedCount test failed of ${flaky.size} tests. Test were running for $timeSpend [$timeSpendPerIteration/iteration]"),
+        h2(ReportCss.subtitle, "Summary"),
+        p(s"Flaky test result: $failedCount test failed of ${flaky.size} tests. Test were running for $timeSpend [$timeSpendPerIteration/iteration]"),
         p(summaryTable)
       )
 
@@ -139,18 +140,17 @@ object HtmlSinglePage {
           h3(
             id := testClass,
             ReportCss.testClass,
-            s"Details for ${testClass.split('.').lastOption.getOrElse("<?>")}"
+            s"Class ${testClass.split('.').lastOption.getOrElse(testClass)}"
           ),
           flakyTestsDescription
         )
-
     }
     html(
       head(link(rel := "stylesheet", href := "report.css")),
       body(
         ReportCss.body,
         summaryAttachment,
-        p(historyFile.map(f => h3(a(href := s"$f", "History trends")))),
+        h2(ReportCss.subtitle, "Details"),
         p(
           failedAttachments.toArray: _*
         ),
