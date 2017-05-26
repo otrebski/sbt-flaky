@@ -118,7 +118,7 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
         p(SvgChart.chart(summaryFailures)),
         processChanges(historyReport, git),
         p(a(href := currentResultFile, h3("Last detailed report"))),
-        h2(ReportCss.subtitle, "Failures per class"),
+        h2(ReportCss.subtitle, "Details"),
         p(stats.filter(_.stats.exists(_.failedCount > 0)).map(processFunction).toArray: _*),
         footer()
       )
