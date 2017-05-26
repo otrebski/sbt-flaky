@@ -32,14 +32,14 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
 
     val diffs = tuples.zip(tuples.tail)
     val diffsHtml: immutable.Seq[Text.TypedTag[String]] = diffs.flatMap {
-      case ((hrdPrev, _), (hrdNext, index)) =>
+      case ((hrdPrev, _), (hrdCurrent, index)) =>
         val commits: Option[immutable.Seq[GitCommit]] = for {
           commitPrev <- hrdPrev.gitCommitHash
-          commitNext <- hrdNext.gitCommitHash
+          commitNext <- hrdCurrent.gitCommitHash
         } yield git.commitsList(commitPrev, commitNext).getOrElse(List.empty)
 
         // Build/hashes  | id | author | shortMsg
-        val build = s"$index - ${new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(hrdNext.timestamp)}"
+        val build = s"$index - ${new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(hrdCurrent.timestamp)}"
 
         val listOfCommits: immutable.Seq[GitCommit] = commits.toList.flatten.reverse
 
@@ -49,11 +49,19 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
           td(style, first.shortMsg)
         )
 
+        val currentVersion: String = hrdCurrent.gitCommitHash.getOrElse("?")
         val changes: Seq[Text.TypedTag[String]] = listOfCommits match {
-          case Nil => Seq(tr(td(ReportCss.diffTableTdBuild, build), commitToRow(GitCommit("-", "-", "-"), ReportCss.diffTableTdFirstCommit)))
+          case Nil => Seq(
+            tr(
+              td(ReportCss.diffTableTdBuild, build),
+              td(ReportCss.diffTableTdGitHash, currentVersion),
+              commitToRow(GitCommit("-", "-", "-"), ReportCss.diffTableTdFirstCommit))
+          )
           case first :: tail =>
             tr(ReportCss.diffTableTr,
-              td(rowspan := s"${tail.size + 1}", build, ReportCss.diffTableTdBuild), commitToRow(first, ReportCss.diffTableTdFirstCommit)) ::
+              td(rowspan := s"${tail.size + 1}", build, ReportCss.diffTableTdBuild),
+              td(rowspan := s"${tail.size + 1}", currentVersion, ReportCss.diffTableTdGitHash),
+              commitToRow(first, ReportCss.diffTableTdFirstCommit)) ::
               tail.map { c => tr(ReportCss.diffTableTr, commitToRow(c, ReportCss.diffTableTdCommit)) }
         }
         changes
@@ -61,6 +69,7 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
     val diffsTable = table(ReportCss.diffTable,
       tr(
         th(ReportCss.diffTableTh, "Build"),
+        th(ReportCss.diffTableTh, "Git version"),
         th(ReportCss.diffTableTh, "Id"),
         th(ReportCss.diffTableTh, "Author"),
         th(ReportCss.diffTableTh, "Commit message")

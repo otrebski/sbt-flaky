@@ -94,13 +94,22 @@ object ReportCss extends StyleSheet {
 
   val diffTableTdBuild: Cls = cls(
     borderTop := "1px solid black",
-    borderRight := "1px dashed lightgray",
     verticalAlign := "text-top",
     paddingTop := "5px",
     paddingLeft := "10px",
     paddingRight := "10px"
-
   )
+
+  val diffTableTdGitHash: Cls = cls(
+    borderTop := "1px solid black",
+    borderRight := "1px dashed lightgray",
+    verticalAlign := "text-top",
+    paddingTop := "5px",
+    paddingLeft := "10px",
+    paddingRight := "10px",
+    fontFamily := "monospace"
+  )
+
   val diffTableTh: Cls = cls(
     borderTop := "1px solid black",
     backgroundColor := "lightblue",
