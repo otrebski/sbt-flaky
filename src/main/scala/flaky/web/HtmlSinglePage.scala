@@ -25,7 +25,7 @@ object HtmlSinglePage {
       body(
         h1(ReportCss.title, "Flaky test result"),
         p(ReportCss.allSuccess, "All tests were successful"),
-        p(historyFile.map(f => a(href:=s"$f", "History trends")))
+        p(historyFile.map(f => a(href := s"$f", "History trends")))
       )
     ).render
 
@@ -67,12 +67,11 @@ object HtmlSinglePage {
         tr(
           td(
             ReportCss.summaryTableTd,
-            a(href := s"#${flaky.test.clazz}", flaky.test.classNameOnly()),
-            " ",
-            historyFile.map(f => a(href:=s"$f#${flaky.test.clazz}_${flaky.test.test}", img(src:="history.png")))
+            a(href := s"#${flaky.test.clazz}", flaky.test.classNameOnly())
           ),
           td(ReportCss.summaryTableTd, testName),
-          td(ReportCss.summaryTableTd, failureBarChar(flaky.failurePercent()))
+          td(ReportCss.summaryTableTd, failureBarChar(flaky.failurePercent())),
+          td(ReportCss.summaryTableTd, historyFile.map(f => a(href := s"$f#${flaky.test.clazz}_${flaky.test.test}", img(src := "history.png"))))
         )
       }
 
@@ -80,7 +79,8 @@ object HtmlSinglePage {
       thead(
         th(b("Class")),
         th("Test"),
-        th("Failure rate")
+        th("Failure rate"),
+        th("Trend")
       ),
       tbody(summaryTableContent)
     )
@@ -123,10 +123,10 @@ object HtmlSinglePage {
               val text =
                 p(
                   h4(
-                    id:=s"${test.clazz}_${test.test}",
+                    id := s"${test.clazz}_${test.test}",
                     ReportCss.testName,
                     failureBarChar(fc.runNames.size, testRunsCount),
-                    historyFile.map(f => a(href:=s"$f#${test.clazz}_${test.test}", img(ReportCss.historyIcon, src:="history.png", alt:="History trends"))),
+                    historyFile.map(f => a(href := s"$f#${test.clazz}_${test.test}", img(ReportCss.historyIcon, src := "history.png", alt := "History trends"))),
                     s" ${test.test} failed ${fc.runNames.size} times"
                   ),
                   p(b(s"Stacktrace:"), code(fc.stacktrace)),
@@ -150,7 +150,7 @@ object HtmlSinglePage {
       body(
         ReportCss.body,
         summaryAttachment,
-        p(historyFile.map(f => h3(a(href:=s"$f", "History trends")))),
+        p(historyFile.map(f => h3(a(href := s"$f", "History trends")))),
         p(
           failedAttachments.toArray: _*
         ),

@@ -1,19 +1,21 @@
 package flaky
 
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
 
 import scalatags.Text
-import scalatags.Text.all.{a, css, hr, href, p, _}
+import scalatags.Text.all.{a, hr, href, p, _}
 
 package object web {
   def footer(): Text.TypedTag[String] = {
     p(
       hr(),
       p(
-        css("color") := "gray",
-        css("text-align") := "right",
+        ReportCss.footer,
         "Created with ",
-        a(href := "https://github.com/otrebski/sbt-flaky", "sbt-flaky plugin")
+        a(href := "https://github.com/otrebski/sbt-flaky", "sbt-flaky plugin"), br,
+        s"Report generated at ${new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date())}"
       )
     )
   }
@@ -32,8 +34,8 @@ package object web {
       head(link(rel := "stylesheet", href := "report.css")),
       body(
         h1(ReportCss.title, "Flaky test report"),
-        h4(a(href := reportFile.getName, "Report for last build")),
-        h4(history),
+        h4(ReportCss.subtitle, a(href := reportFile.getName, "Report for last build")),
+        h4(ReportCss.subtitle, history),
         footer()
       )
     ).render

@@ -34,8 +34,10 @@ object ReportCss extends StyleSheet {
   )
 
   val summaryTable: Cls = cls(
-    border := "2px dotted",
-    backgroundColor := "lavender"
+    border := "1px solid",
+    borderLeft := "5px solid",
+    borderCollapse := "collapse",
+    borderRadius := "5px"
 
   )
 
@@ -111,5 +113,10 @@ object ReportCss extends StyleSheet {
 
   val body: Cls = cls(
     backgroundColor := "#fafafa"
+  )
+
+  val footer: Cls = cls (
+    color := "gray",
+    textAlign:="right"
   )
 }

@@ -111,8 +111,6 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
         p(a(href := currentResultFile, h3("Last detailed report"))),
         h2(ReportCss.subtitle, "Failures per class"),
         p(stats.filter(_.stats.exists(_.failedCount > 0)).map(processFunction).toArray: _*),
-        hr(),
-        p(s"Generate at ${historyReport.date}"),
         footer()
       )
     )
