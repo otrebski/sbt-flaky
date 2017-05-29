@@ -37,7 +37,7 @@ object HtmlSinglePage {
     svg(svgWidth := "100", svgHeight := "20")(
       rect(svgWidth := s"$green", svgHeight := 20, fill := "rgb(0,195,0)"),
       rect(x := s"$green", svgWidth := s"$red", svgHeight := 20, fill := "rgb(255,30,30)"),
-      text(x := "10", y := "15")(f"$failurePercent%.2f%%")
+      text(x := "10", y := "15")(f"${100-failurePercent}%.2f%%")
     )
   }
 
@@ -79,7 +79,7 @@ object HtmlSinglePage {
       thead(
         th(b("Class")),
         th("Test"),
-        th("Failure rate"),
+        th("Success rate"),
         th("Trend")
       ),
       tbody(summaryTableContent)
@@ -128,7 +128,7 @@ object HtmlSinglePage {
                     ReportCss.testName,
                     failureBarChar(fc.runNames.size, testRunsCount),
                     historyFile.map(f => a(href := s"$f#${test.clazz}_${test.test}", img(ReportCss.historyIcon, src := "history.png", alt := "History trends"))),
-                    s" ${test.test} failed ${fc.runNames.size} times"
+                    s" ${test.test} failed ${fc.runNames.size} time${if(fc.runNames.size>1)"s" else ""}"
                   ),
                   p(b(s"Stacktrace:"), code(fc.stacktrace)),
                   message(fc),
@@ -140,7 +140,7 @@ object HtmlSinglePage {
           h3(
             id := testClass,
             ReportCss.testClass,
-            s"Class ${testClass.split('.').lastOption.getOrElse(testClass)}"
+            s"${testClass.split('.').lastOption.getOrElse(testClass)}"
           ),
           flakyTestsDescription
         )

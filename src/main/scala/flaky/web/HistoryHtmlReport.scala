@@ -85,7 +85,7 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
       t =>
         val failuresRate: Seq[Float] = t.stats.map(_.failureRate())
         p(
-          h3(ReportCss.testClass, s"Class: ${t.test.classNameOnly()}", id := s"${t.test.clazz}_${t.test.test}"),
+          h3(ReportCss.testClass, t.test.classNameOnly(), id := s"${t.test.clazz}_${t.test.test}"),
           p(
             ReportCss.testName,
             s"Test: ${t.test.test}",
