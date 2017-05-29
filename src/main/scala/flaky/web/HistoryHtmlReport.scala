@@ -30,7 +30,7 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
       .map(_.historyReportDescription)
       .zipWithIndex
 
-    val diffs = tuples.zip(tuples.tail)
+    val diffs = tuples.zip(tuples.tail).reverse
     val diffsHtml: immutable.Seq[Text.TypedTag[String]] = diffs.flatMap {
       case ((hrdPrev, _), (hrdCurrent, index)) =>
         val commits: Option[immutable.Seq[GitCommit]] = for {
@@ -41,7 +41,7 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
         // Build/hashes  | id | author | shortMsg
         val build = s"$index - ${new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(hrdCurrent.timestamp)}"
 
-        val listOfCommits: immutable.Seq[GitCommit] = commits.toList.flatten.reverse
+        val listOfCommits: immutable.Seq[GitCommit] = commits.toList.flatten.sortBy(_.commitTime).reverse
 
         def commitToRow(first: GitCommit, style: Cls) = Seq(
           td(style, first.id),
@@ -55,7 +55,7 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
             tr(
               td(ReportCss.diffTableTdBuild, build),
               td(ReportCss.diffTableTdGitHash, currentVersion),
-              commitToRow(GitCommit("-", "-", "-"), ReportCss.diffTableTdFirstCommit))
+              commitToRow(GitCommit("-", "-", "-", 0), ReportCss.diffTableTdFirstCommit))
           )
           case first :: tail =>
             tr(ReportCss.diffTableTr,
@@ -81,17 +81,25 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
 
   override def renderHistory(historyReport: HistoryReport, git: Git, currentResultFile: String): String = {
 
-    val processFunction: (HistoryStat => Text.Modifier) = {
-      t =>
-        val failuresRate: Seq[Float] = t.stats.map(_.failureRate())
-        p(
-          h3(ReportCss.testClass, t.test.classNameOnly(), id := s"${t.test.clazz}_${t.test.test}"),
-          p(
+    val processFunction: (((String, Seq[HistoryStat])) => Text.Modifier) = {
+      x =>
+        val clazz = x._1
+        val stats = x._2
+        val htmlForTests = stats.map { stat =>
+          p(p(
+            id := s"${stat.test.clazz}_${stat.test.test}",
             ReportCss.testName,
-            s"Test: ${t.test.test}",
-            a(href := s"$currentResultFile#${t.test.clazz}_${t.test.test}", " <Details of last test>")
+            s"Test: ${stat.test.test}",
+            a(href := s"$currentResultFile#${stat.test.clazz}_${stat.test.test}", " <Details of last test>")
           ),
-          SvgChart.chart(failuresRate.toList)
+            SvgChart.chart(stat.stats.map(_.failureRate()))
+          )
+        }
+
+        val clazzName: String = stats.headOption.map(_.test.classNameOnly()).getOrElse(clazz)
+        p(
+          h3(ReportCss.testClass, clazzName, id := s"$clazz"),
+          htmlForTests
         )
     }
 
@@ -110,6 +118,9 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
       .sortBy(_.date)
       .map(_.failureRate())
 
+    val statsWithFailure: immutable.Seq[HistoryStat] = stats.filter(_.stats.exists(_.failedCount > 0))
+    val groupedByClass: Map[String, immutable.Seq[HistoryStat]] = statsWithFailure.groupBy(_.test.clazz)
+
     val page = html(
       head(link(rel := "stylesheet", href := "report.css")),
       body(
@@ -119,7 +130,7 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
         processChanges(historyReport, git),
         p(a(href := currentResultFile, h3("Last detailed report"))),
         h2(ReportCss.subtitle, "Details"),
-        p(stats.filter(_.stats.exists(_.failedCount > 0)).map(processFunction).toArray: _*),
+        p(groupedByClass.map(processFunction).toArray: _*),
         footer()
       )
     )

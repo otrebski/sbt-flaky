@@ -35,7 +35,7 @@ class FlakyCommandTest extends WordSpec with Unzip with Matchers {
       val report = Flaky.createReport("Project X", timeDetails, dirs.toList, reportDir)
 
       unzip(zippedGitRepo, unzippedGitDir)
-      val git = Git(new File(unzippedGitDir, "gitrepo"))
+      val git = Git(new File(unzippedGitDir, "gitrepo/"))
       val htmlReportDir = new File("./target/example-report")
       FlakyCommand.createHtmlReports("Project x", report, Some(historyReport1), htmlReportDir, git, log)
 

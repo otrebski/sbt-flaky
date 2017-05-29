@@ -37,7 +37,7 @@ object HtmlSinglePage {
     svg(svgWidth := "100", svgHeight := "20")(
       rect(svgWidth := s"$green", svgHeight := 20, fill := "rgb(0,195,0)"),
       rect(x := s"$green", svgWidth := s"$red", svgHeight := 20, fill := "rgb(255,30,30)"),
-      text(x := "10", y := "15")(f"${100-failurePercent}%.2f%%")
+      text(x := "10", y := "15")(f"${100 - failurePercent}%.2f%%")
     )
   }
 
@@ -65,11 +65,8 @@ object HtmlSinglePage {
           "(It is not a test) - There is no  test name in JUnit report"
         } else flaky.test.test
         tr(
-          td(
-            ReportCss.summaryTableTd,
-            a(href := s"#${flaky.test.clazz}", flaky.test.classNameOnly())
-          ),
-          td(ReportCss.summaryTableTd, testName),
+          td(ReportCss.summaryTableTd, a(href := s"#${flaky.test.clazz}", flaky.test.classNameOnly())),
+          td(ReportCss.summaryTableTd, a(href := s"#${flaky.test.clazz}_${flaky.test.test}", testName)),
           td(ReportCss.summaryTableTd, failureBarChar(flaky.failurePercent())),
           td(ReportCss.summaryTableTd, historyFile.map(f => a(href := s"$f#${flaky.test.clazz}_${flaky.test.test}", img(src := "history.png"))))
         )
@@ -128,7 +125,7 @@ object HtmlSinglePage {
                     ReportCss.testName,
                     failureBarChar(fc.runNames.size, testRunsCount),
                     historyFile.map(f => a(href := s"$f#${test.clazz}_${test.test}", img(ReportCss.historyIcon, src := "history.png", alt := "History trends"))),
-                    s" ${test.test} failed ${fc.runNames.size} time${if(fc.runNames.size>1)"s" else ""}"
+                    s" ${test.test} failed ${fc.runNames.size} time${if (fc.runNames.size > 1) "s" else ""}"
                   ),
                   p(b(s"Stacktrace:"), code(fc.stacktrace)),
                   message(fc),

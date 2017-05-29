@@ -24,11 +24,33 @@ import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 
+import scala.annotation.tailrec
 import scala.collection.JavaConversions._
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 object Git {
-  def apply(workTree: File): Git = new Git((new FileRepositoryBuilder).setWorkTree(workTree).build())
+  def apply(workTree: File): Git = {
+
+    @tailrec
+    def findGitRoot(dir: File, upLevels: Int): File = {
+      val path = dir.getAbsolutePath
+      println (s"$path - ${dir.exists()}")
+      if (upLevels > 0) {
+        val git = new Git((new FileRepositoryBuilder).setWorkTree(dir).build())
+        val triedString = git.currentId()
+        triedString match {
+          case Success(_) => dir
+          case Failure(_) if dir.getParentFile != null => findGitRoot(dir.getParentFile, upLevels - 1)
+          case Failure(_) => dir
+        }
+      } else {
+        dir
+      }
+    }
+
+    val gitRoot = findGitRoot(workTree, 3)
+    new Git((new FileRepositoryBuilder).setWorkTree(gitRoot).build())
+  }
 }
 
 class Git(repository: Repository) {
@@ -58,13 +80,15 @@ class Git(repository: Repository) {
   }
 
   private def fullDesc(commit: RevCommit) =
+
     GitCommit(
       commit.getId.abbreviate(7).name,
       commit.getAuthorIdent.getEmailAddress,
-      commit.getShortMessage
+      commit.getShortMessage,
+      commit.getCommitTime
     )
 
 }
 
-case class GitCommit(id: String, author: String, shortMsg: String)
+case class GitCommit(id: String, author: String, shortMsg: String, commitTime: Int)
 
