@@ -86,9 +86,9 @@ object HtmlSinglePage {
         h1(ReportCss.title, s"Flaky test result for $projectName at ${new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(timestamp))}"),
         h2(ReportCss.subtitle, "Summary"),
         p(s"Flaky test result: $failedCount test failed of ${flaky.size} tests. Test were running for $timeSpend [$timeSpendPerIteration/iteration]"),
-        p(summaryTable)
+        p(summaryTable),
+        p(i("Results are sorted from lowest success rate. Tests without failures are not displayed"))
       )
-
 
     val flakyCases: Map[String, List[FlakyCase]] = flakyTestReport.groupFlakyCases()
 
