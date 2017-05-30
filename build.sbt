@@ -1,3 +1,5 @@
+addSbtPlugin("com.typesafe.sbt" %  "sbt-git"   % "0.9.3")
+
 organization := "pl.otrebski"
 
 name := "sbt-flaky"
@@ -22,7 +24,9 @@ libraryDependencies += "org.apache.commons" % "commons-vfs2" % "2.1"
 
 libraryDependencies += "com.lihaoyi" %% "scalatags" % "0.6.5"
 
-libraryDependencies +=  "org.eclipse.jgit" % "org.eclipse.jgit" % "4.1.1.201511131810-r"
+libraryDependencies +=  "com.typesafe.sbt" %  "sbt-git"   % "0.9.3"
+//libraryDependencies +=  "org.eclipse.jgit" % "org.eclipse.jgit" % "4.7.0.201704051617-r"
+//"com.typesafe.sbt" %  "sbt-git"   % Version.sbtGit
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 
