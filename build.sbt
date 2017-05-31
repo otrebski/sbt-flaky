@@ -1,10 +1,21 @@
-addSbtPlugin("com.typesafe.sbt" %  "sbt-git"   % "0.9.3")
+lazy val `sbt-flaky` =
+  (project in file("."))
+    .enablePlugins(GitVersioning, GitBranchPrompt)
+    .settings(
+      libraryDependencies ++= Seq(
+        "org.apache.commons" % "commons-vfs2" % "2.1",
+        "com.lihaoyi" %% "scalatags" % "0.6.5",
+        "com.typesafe.sbt" % "sbt-git" % "0.9.2",
+        "org.scalatest" %% "scalatest" % "3.0.1" % "test"
+      ),
+      addSbtPlugin("com.typesafe.sbt" % "sbt-git" % "0.9.2")
+    )
 
 organization := "pl.otrebski"
 
 name := "sbt-flaky"
 
-version := "0.12-SNAPSHOT"
+version := "0.11.1"
 
 //scalaVersion := "2.11.8"
 
@@ -14,21 +25,12 @@ javaVersionPrefix in javaVersionCheck := Some("1.8") //Should I compile with spe
 
 ScriptedPlugin.scriptedSettings
 
-scriptedLaunchOpts := { scriptedLaunchOpts.value ++
-  Seq("-Xmx1024M", "-XX:MaxPermSize=256M", "-Dplugin.version=" + version.value)
+scriptedLaunchOpts := {
+  scriptedLaunchOpts.value ++
+    Seq("-Xmx1024M", "-XX:MaxPermSize=256M", "-Dplugin.version=" + version.value)
 }
 
 scriptedBufferLog := false
-
-libraryDependencies += "org.apache.commons" % "commons-vfs2" % "2.1"
-
-libraryDependencies += "com.lihaoyi" %% "scalatags" % "0.6.5"
-
-libraryDependencies +=  "com.typesafe.sbt" %  "sbt-git"   % "0.9.3"
-//libraryDependencies +=  "org.eclipse.jgit" % "org.eclipse.jgit" % "4.7.0.201704051617-r"
-//"com.typesafe.sbt" %  "sbt-git"   % Version.sbtGit
-
-libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 
 publishMavenStyle := false
 
