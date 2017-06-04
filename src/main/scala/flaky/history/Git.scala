@@ -33,8 +33,6 @@ object Git {
 
     @tailrec
     def findGitRoot(dir: File, upLevels: Int): File = {
-      val path = dir.getAbsolutePath
-      println (s"$path - ${dir.exists()}")
       if (upLevels > 0) {
         val git = new Git((new FileRepositoryBuilder).setWorkTree(dir).build())
         val triedString = git.currentId()
