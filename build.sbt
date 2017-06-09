@@ -11,6 +11,8 @@ lazy val `sbt-flaky` =
       addSbtPlugin("com.typesafe.sbt" % "sbt-git" % "0.9.2")
     )
 
+git.useGitDescribe := true
+
 organization := "pl.otrebski"
 
 name := "sbt-flaky"

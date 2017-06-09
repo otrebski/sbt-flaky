@@ -29,12 +29,13 @@ import scala.collection.JavaConversions._
 import scala.util.{Failure, Success, Try}
 
 object Git {
+
   def apply(workTree: File): Git = {
 
     @tailrec
     def findGitRoot(dir: File, upLevels: Int): File = {
       if (upLevels > 0) {
-        val git = new Git((new FileRepositoryBuilder).setWorkTree(dir).build())
+        val git = new GitUsingJgit((new FileRepositoryBuilder).setWorkTree(dir).build())
         val triedString = git.currentId()
         triedString match {
           case Success(_) => dir
@@ -47,11 +48,24 @@ object Git {
     }
 
     val gitRoot = findGitRoot(workTree, 3)
-    new Git((new FileRepositoryBuilder).setWorkTree(gitRoot).build())
+    new GitUsingJgit((new FileRepositoryBuilder).setWorkTree(gitRoot).build())
   }
+
 }
 
-class Git(repository: Repository) {
+trait Git {
+
+  def currentId(): Try[String]
+
+  def history(): Try[List[GitCommit]]
+
+  def commitsList(previous: String, current: String): Try[List[GitCommit]] = {
+    history().map(_.dropWhile(_.id != current).takeWhile(_.id != previous))
+  }
+
+}
+
+class GitUsingJgit(repository: Repository) extends Git {
 
   private val jgit = new JGit(repository)
 
@@ -72,10 +86,6 @@ class Git(repository: Repository) {
         .toList
         .map(fullDesc)
     }
-
-  def commitsList(previous: String, current: String): Try[List[GitCommit]] = {
-    history().map(_.dropWhile(_.id != current).takeWhile(_.id != previous))
-  }
 
   private def fullDesc(commit: RevCommit) =
 
