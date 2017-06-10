@@ -126,19 +126,6 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
 
     val stats: List[HistoryStat] = historyReport.historyStat()
 
-    val summaryFailures: immutable.List[Float] = stats
-      .flatMap(_.stats)
-      .groupBy(_.date)
-      .map {
-        case (date, s1) =>
-          s1.foldLeft(Stat(date, 0, 0))((acc, stat) =>
-            Stat(date, acc.failedCount + stat.failedCount, acc.totalRun + stat.totalRun)
-          )
-      }
-      .toList
-      .sortBy(_.date)
-      .map(_.failureRate())
-
     val successProbability = historyReport.historicalRuns.map(_.report.successProbabilityPercent())
     println(s"Successes probability: $successProbability")
 
