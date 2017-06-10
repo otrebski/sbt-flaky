@@ -24,24 +24,45 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
   println("History data loaded")
   Io.writeToFile(new File("historyChart.html"), renderHistory(historyReport1, Git(new File(".")), ""))
 
-  private def processChanges(historyReport: HistoryReport, git: Git) = {
-    val tuples = historyReport
-      .historicalRuns
-      .map(_.historyReportDescription)
-      .zipWithIndex
+  case class BuildDiff(historyReport: HistoryReportDescription, buildNr: Int, gitCommits: List[GitCommit])
 
-    val diffs = tuples.zip(tuples.tail).reverse
-    val diffsHtml: immutable.Seq[Text.TypedTag[String]] = diffs.flatMap {
-      case ((hrdPrev, _), (hrdCurrent, index)) =>
-        val commits: Option[immutable.Seq[GitCommit]] = for {
-          commitPrev <- hrdPrev.gitCommitHash
-          commitNext <- hrdCurrent.gitCommitHash
-        } yield git.commitsList(commitPrev, commitNext).getOrElse(List.empty)
+  def calculateBuildDiffs(historyReportDescription: List[HistoryReportDescription], git: Git): List[BuildDiff] = {
+    if (historyReportDescription.nonEmpty) {
+      val descriptionsFromNewest: immutable.Seq[BuildDiff] = historyReportDescription
+        .sortBy(_.timestamp)
+        .zipWithIndex
+        .reverse
+        .map {
+          case (hrd, index) => BuildDiff(hrd, index + 1, List.empty)
+        }
+      val tuples: immutable.Seq[(BuildDiff, Option[String])] = descriptionsFromNewest.zip(descriptionsFromNewest.tail.map(_.historyReport.gitCommitHash))
+      val buildInfo: immutable.Seq[BuildDiff] = tuples.map {
+        case (buildDiff, maybePreviousHash) =>
+          val commits = for {
+            currentCommit <- buildDiff.historyReport.gitCommitHash
+            previousCommit <- maybePreviousHash
+          } yield git.commitsList(previousCommit, currentCommit).getOrElse(List.empty)
+          buildDiff.copy(gitCommits = commits.getOrElse(List.empty).sortBy(_.commitTime).reverse)
+      }
+      val firstBuild = descriptionsFromNewest.lastOption.toList
+      buildInfo.toList ::: firstBuild
+    } else {
+      List.empty[BuildDiff]
+    }
+  }
+
+  private def processChanges(historyReport: HistoryReport, git: Git) = {
+
+    val buildDiffs: immutable.Seq[BuildDiff] = calculateBuildDiffs(historyReport.historicalRuns.map(_.historyReportDescription), git)
+
+    val diffsHtml: immutable.Seq[Text.TypedTag[String]] = buildDiffs.flatMap {
+      buildDiff =>
+        val commits = buildDiff.gitCommits
+        val hrdCurrent = buildDiff.historyReport
 
         // Build/hashes  | id | author | shortMsg
-        val build = s"$index - ${new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(hrdCurrent.timestamp)}"
-
-        val listOfCommits: immutable.Seq[GitCommit] = commits.toList.flatten.sortBy(_.commitTime).reverse
+        val build = s"${buildDiff.buildNr} - ${new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(hrdCurrent.timestamp)}"
+        val listOfCommits: immutable.Seq[GitCommit] = commits.sortBy(_.commitTime).reverse
 
         def commitToRow(first: GitCommit, style: Cls) = Seq(
           td(style, first.id),
