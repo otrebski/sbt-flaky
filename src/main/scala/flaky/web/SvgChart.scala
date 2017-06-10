@@ -5,8 +5,8 @@ import scalatags.text.Builder
 import scalatags.{Text, generic}
 
 object SvgChart {
-  val graphWidth = 800
-  val graphHeight: Int = 300
+  private val graphWidth = 800
+  private val graphHeight: Int = 300
   private val textArea = 50
 
   import scalatags.Text.all._
@@ -20,41 +20,45 @@ object SvgChart {
     val horizontalLineStroke: generic.AttrPair[Builder, String] = stroke := "rgb(200,200,200)"
     val horizontalLineStrokeWidth: generic.AttrPair[Builder, String] = strokeWidth := "1"
 
-    val polygonFill: generic.AttrPair[Builder, String] = fill := "red"
+    val polygonFillRed: generic.AttrPair[Builder, String] = fill := "red"
+    val polygonFillGreen: generic.AttrPair[Builder, String] = fill := "green"
     val polygonStroke: generic.AttrPair[Builder, String] = stroke := "black"
     val polygonStrokeWidth: generic.AttrPair[Builder, String] = strokeWidth := "1"
 
   }
 
-  def xCoordinate(index: Int): Int = textArea + 25 * index
+  private def xCoordinate(index: Int): Int = textArea + 25 * index
 
-  def yCoordinate(percent: Float): Int = (graphHeight - 10 * percent).toInt
+  private def failureYCoordinate(percent: Float): Int = (graphHeight - 10 * percent).toInt
 
-  def axis(): List[Text.TypedTag[String]] = {
-    val ticksY = Range(0, 28, 1).map { value =>
+  private def successYCoordinate(percent: Float): Int = Math.min((10 * (105 - percent)).toInt, graphHeight)
+
+  private def axis(yAxisTitle: String, yValueMapping: (Float => Int), valuesRange: Range): List[Text.TypedTag[String]] = {
+    val rangeY = Range(valuesRange.start, valuesRange.end, 1)
+    val ticksY = rangeY.map { value =>
       line(
         x1 := xCoordinate(0) - 2,
         x2 := xCoordinate(0) + 2,
-        y1 := yCoordinate(value),
-        y2 := yCoordinate(value),
+        y1 := yValueMapping(value),
+        y2 := yValueMapping(value),
         Styles.axisStroke, Styles.axisStrokeWidth
       )
     }
-    val majorRicksY = Range(5, 28, 5).flatMap { value =>
+    val majorRicksY = Range(valuesRange.start, valuesRange.end, 5).tail.flatMap { value =>
       line(
         x1 := xCoordinate(0) - 4,
         x2 := graphWidth,
-        y1 := yCoordinate(value),
-        y2 := yCoordinate(value),
+        y1 := yValueMapping(value),
+        y2 := yValueMapping(value),
         Styles.horizontalLineStroke, Styles.horizontalLineStrokeWidth
       ) ::
         line(
           x1 := xCoordinate(0) - 4,
           x2 := xCoordinate(0) + 4,
-          y1 := yCoordinate(value),
-          y2 := yCoordinate(value),
+          y1 := yValueMapping(value),
+          y2 := yValueMapping(value),
           Styles.axisStroke, Styles.axisStrokeWidth
-        ) :: text(x := xCoordinate(0) - 5, y := yCoordinate(value) + 7, textAnchor := "end")(s"$value%") :: Nil
+        ) :: text(x := xCoordinate(0) - 5, y := yValueMapping(value) + 7, textAnchor := "end")(s"$value%") :: Nil
     }
 
     val ticksX = Range(0, 30).toList.flatMap { index =>
@@ -63,45 +67,60 @@ object SvgChart {
         line(
           x1 := xCoordinate(index),
           x2 := xCoordinate(index),
-          y1 := (yCoordinate(0) - 3),
-          y2 := (yCoordinate(0) + 3),
+          y1 := (graphHeight - 3),
+          y2 := (graphHeight + 3),
           Styles.axisStroke, Styles.axisStrokeWidth
         ),
-        text(x := xc, y := yCoordinate(0) + 15, s"${index+1}", textAnchor := "middle")
+        text(x := xc, y := graphHeight + 15, s"${index + 1}", textAnchor := "middle")
       )
     }
+
 
     val axis = List(
       line(x1 := textArea, y1 := "0", x2 := textArea, y2 := "300", Styles.axisStroke, Styles.axisStrokeWidth),
       line(x1 := textArea, y1 := "0", x2 := (textArea - 5), y2 := "10", Styles.axisStroke, Styles.axisStrokeWidth),
       line(x1 := textArea, y1 := "0", x2 := (textArea + 5), y2 := "10", Styles.axisStroke, Styles.axisStrokeWidth),
-      text(x := textArea + 10, y := 15, s"Failure ratio [%]", textAnchor := "start"),
+      text(x := textArea + 10, y := 15, yAxisTitle, textAnchor := "start"),
       line(x1 := textArea, y1 := graphHeight, x2 := (graphWidth + textArea), y2 := graphHeight, Styles.axisStroke, Styles.axisStrokeWidth),
       line(x1 := (graphWidth + textArea - 10), y1 := (graphHeight - 5), x2 := (graphWidth + textArea), y2 := graphHeight, Styles.axisStroke, Styles.axisStrokeWidth),
       line(x1 := (graphWidth + textArea - 10), y1 := (graphHeight + 5), x2 := (graphWidth + textArea), y2 := graphHeight, Styles.axisStroke, Styles.axisStrokeWidth),
-      text(x := (graphWidth + textArea - 10), y := yCoordinate(0) + 35, s"Build nr", textAnchor := "end")
+      text(x := (graphWidth + textArea - 10), y := graphHeight + 35, s"Build nr", textAnchor := "end")
 
     )
-    axis ::: ticksX.toList ::: ticksY.toList ::: majorRicksY.toList
+    axis ::: ticksX ::: ticksY.toList ::: majorRicksY.toList
   }
 
 
-  def series(failures: List[Float]): Text.TypedTag[String] = {
-    val pointsString = failures
+  private def series(yValueMapping: (Float => Int), data: List[Float], polygonFill: generic.AttrPair[Builder, String] ): Text.TypedTag[String] = {
+    val pointsString = data
       .zipWithIndex
       .map {
-        case (currentValue: Float, index) => s"${xCoordinate(index)} ${yCoordinate(currentValue)}"
-      }.mkString(s"${xCoordinate(0)} ${yCoordinate(0)}, ", ",", s", ${xCoordinate(failures.size - 1)} ${yCoordinate(0)}")
+        case (currentValue: Float, index) => s"${xCoordinate(index)} ${yValueMapping(currentValue)}"
+      }.mkString(s"${xCoordinate(0)} ${yValueMapping(0)}, ", ",", s", ${xCoordinate(data.size - 1)} ${yValueMapping(0)}")
 
-    polygon(points := pointsString, Styles.polygonFill, Styles.polygonStroke, Styles.polygonStrokeWidth)
+    polygon(points := pointsString, polygonFill, Styles.polygonStroke, Styles.polygonStrokeWidth)
   }
 
 
-  def chart(failuresRate: List[Float]): Text.TypedTag[String] = {
+  private def chart(
+                     yAxisTitle: String,
+                     data: List[Float],
+                     yMapping: (Float => Int),
+                     valuesRange: Range,
+                     polygonFill: generic.AttrPair[Builder, String]
+                   ) = {
     import scalatags.Text.svgAttrs.{height => svgHeight, width => svgWidth}
     svg(svgWidth := (graphWidth + textArea), svgHeight := (graphHeight + textArea))(
-      (List(series(failuresRate)) ::: axis()).toArray: _*
+      (List(series(yMapping, data, polygonFill)) ::: axis(yAxisTitle, yMapping, valuesRange)).toArray: _*
     )
+  }
+
+  def successChart(successRate: List[Float]): Text.TypedTag[String] = {
+    chart("Build success probability [%]", successRate, successYCoordinate, Range(75, 101), Styles.polygonFillGreen)
+  }
+
+  def failureChart(failuresRate: List[Float]): Text.TypedTag[String] = {
+    chart("Failure ratio [%]", failuresRate, failureYCoordinate, Range(0, 28), Styles.polygonFillRed)
   }
 
 }

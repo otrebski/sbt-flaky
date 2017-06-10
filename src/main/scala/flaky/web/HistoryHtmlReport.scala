@@ -113,7 +113,7 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
             s"Test: ${stat.test.test}",
             a(href := s"$currentResultFile#${stat.test.clazz}_${stat.test.test}", " <Details of last test>")
           ),
-            SvgChart.chart(stat.stats.map(_.failureRate()))
+            SvgChart.failureChart(stat.stats.map(_.failureRate()))
           )
         }
 
@@ -139,6 +139,9 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
       .sortBy(_.date)
       .map(_.failureRate())
 
+    val successProbability = historyReport.historicalRuns.map(_.report.successProbabilityPercent())
+    println(s"Successes probability: $successProbability")
+
     val statsWithFailure: immutable.Seq[HistoryStat] = stats.filter(_.stats.exists(_.failedCount > 0))
     val groupedByClass: Map[String, immutable.Seq[HistoryStat]] = statsWithFailure.groupBy(_.test.clazz)
 
@@ -146,8 +149,9 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
       head(link(rel := "stylesheet", href := "report.css")),
       body(
         h1(ReportCss.title, s"History trends of flaky tests for ${historyReport.project}"),
-        h2(ReportCss.subtitle, "Average failure rate"),
-        p(SvgChart.chart(summaryFailures)),
+        h2(ReportCss.subtitle, "Build success probability"),
+        p(SvgChart.successChart(successProbability)),
+        p("Build success probability is change that none of flaky test will fail during build."),
         processChanges(historyReport, git),
         p(a(href := currentResultFile, h3("Last detailed report"))),
         h2(ReportCss.subtitle, "Details"),
