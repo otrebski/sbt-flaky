@@ -15,7 +15,8 @@ package object web {
         ReportCss.footer,
         "Created with ",
         a(href := "https://github.com/otrebski/sbt-flaky", "sbt-flaky plugin"), br,
-        s"Report generated at ${new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date())}"
+        s"Report generated at ${new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date())}",
+        s"Fugue icons are on Creative Common license"
       )
     )
   }

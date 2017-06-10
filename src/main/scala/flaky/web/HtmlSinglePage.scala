@@ -29,7 +29,7 @@ object HtmlSinglePage {
       )
     ).render
 
-  def failureBarChar(failurePercent: Float): Text.TypedTag[String] = {
+  def successBarChar(failurePercent: Float): Text.TypedTag[String] = {
     import scalatags.Text.svgAttrs.{fill, x, y, height => svgHeight, width => svgWidth}
     import scalatags.Text.svgTags._
     val red = failurePercent.toInt
@@ -42,7 +42,7 @@ object HtmlSinglePage {
   }
 
   def failureBarChar(failed: Int, runs: Int): Text.TypedTag[String] = {
-    failureBarChar(100f * failed / runs)
+    successBarChar(100f * failed / runs)
   }
 
 
@@ -67,7 +67,7 @@ object HtmlSinglePage {
         tr(
           td(ReportCss.summaryTableTd, a(href := s"#${flaky.test.clazz}", flaky.test.classNameOnly())),
           td(ReportCss.summaryTableTd, a(href := s"#${flaky.test.clazz}_${flaky.test.test}", testName)),
-          td(ReportCss.summaryTableTd, failureBarChar(flaky.failurePercent())),
+          td(ReportCss.summaryTableTd, successBarChar(flaky.failurePercent())),
           td(ReportCss.summaryTableTd, historyFile.map(f => a(href := s"$f#${flaky.test.clazz}_${flaky.test.test}", img(src := "history.png"))))
         )
       }
@@ -86,6 +86,7 @@ object HtmlSinglePage {
         h1(ReportCss.title, s"Flaky test result for $projectName at ${new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(timestamp))}"),
         h2(ReportCss.subtitle, "Summary"),
         p(s"Flaky test result: $failedCount test failed of ${flaky.size} tests. Test were running for $timeSpend [$timeSpendPerIteration/iteration]"),
+        p(ReportCss.successProbability, s"Build success probability: ", successBarChar(flakyTestReport.successProbabilityPercent())),
         p(summaryTable),
         p(i("Results are sorted from lowest success rate. Tests without failures are not displayed"))
       )
