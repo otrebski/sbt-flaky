@@ -29,9 +29,12 @@ object SvgChart {
 
   private def xCoordinate(index: Int): Int = textArea + 25 * index
 
-  private def failureYCoordinate(percent: Float): Int = (graphHeight - 10 * percent).toInt
-
-  private def successYCoordinate(percent: Float): Int = Math.min((10 * (105 - percent)).toInt, graphHeight)
+  private def yCoordinate(viewPort:Range)(value:Float): Int = {
+    //values => viewPort => coordinates on screen
+    val zoom = (graphHeight/100)*100*(value-viewPort.start)/(viewPort.end-viewPort.start)
+    val coordinate = (graphHeight-zoom).toInt
+    coordinate
+  }
 
   private def axis(yAxisTitle: String, yValueMapping: (Float => Int), valuesRange: Range): List[Text.TypedTag[String]] = {
     val rangeY = Range(valuesRange.start, valuesRange.end, 1)
@@ -44,7 +47,9 @@ object SvgChart {
         Styles.axisStroke, Styles.axisStrokeWidth
       )
     }
-    val majorRicksY = Range(valuesRange.start, valuesRange.end, 5).tail.flatMap { value =>
+
+    val majorAxisTick = (valuesRange.end-valuesRange.start)/10
+    val majorTicksY = Range(valuesRange.start, valuesRange.end, majorAxisTick).tail.flatMap { value =>
       line(
         x1 := xCoordinate(0) - 4,
         x2 := graphWidth,
@@ -60,7 +65,6 @@ object SvgChart {
           Styles.axisStroke, Styles.axisStrokeWidth
         ) :: text(x := xCoordinate(0) - 5, y := yValueMapping(value) + 7, textAnchor := "end")(s"$value%") :: Nil
     }
-
     val ticksX = Range(0, 30).toList.flatMap { index =>
       val xc = xCoordinate(index)
       List(
@@ -76,6 +80,8 @@ object SvgChart {
     }
 
 
+
+
     val axis = List(
       line(x1 := textArea, y1 := "0", x2 := textArea, y2 := "300", Styles.axisStroke, Styles.axisStrokeWidth),
       line(x1 := textArea, y1 := "0", x2 := (textArea - 5), y2 := "10", Styles.axisStroke, Styles.axisStrokeWidth),
@@ -87,7 +93,7 @@ object SvgChart {
       text(x := (graphWidth + textArea - 10), y := graphHeight + 35, s"Build nr", textAnchor := "end")
 
     )
-    axis ::: ticksX ::: ticksY.toList ::: majorRicksY.toList
+    axis ::: ticksX ::: ticksY.toList ::: majorTicksY.toList
   }
 
 
@@ -116,11 +122,13 @@ object SvgChart {
   }
 
   def successChart(successRate: List[Float]): Text.TypedTag[String] = {
-    chart("Build success probability [%]", successRate, successYCoordinate, Range(75, 101), Styles.polygonFillGreen)
+    val range = Range(0, 109)
+    chart("Build success probability [%]", successRate, yCoordinate(range), range, Styles.polygonFillGreen)
   }
 
   def failureChart(failuresRate: List[Float]): Text.TypedTag[String] = {
-    chart("Failure ratio [%]", failuresRate, failureYCoordinate, Range(0, 28), Styles.polygonFillRed)
+    val range = Range(0, 50)
+    chart("Failure ratio [%]", failuresRate, yCoordinate(range), range, Styles.polygonFillRed)
   }
 
 }
