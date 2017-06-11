@@ -1,6 +1,6 @@
 package flaky.web
 
-import scalatags.Text.all._
+import scalatags.Text.all.{paddingLeft, _}
 import scalatags.stylesheet._
 
 object ReportCss extends StyleSheet {
@@ -26,6 +26,16 @@ object ReportCss extends StyleSheet {
     margin := "5px",
     border := "1px solid darkblue",
     borderRadius := "5px"
+  )
+
+  val successProbability: Cls = cls(
+    backgroundColor := "white",
+    color := "black",
+    padding := "4px",
+    margin := "5px",
+    border := "1px solid darkblue",
+    borderRadius := "5px",
+    borderLeft := "5px solid"
   )
 
   val message: Cls = cls(
@@ -124,8 +134,8 @@ object ReportCss extends StyleSheet {
     backgroundColor := "#fafafa"
   )
 
-  val footer: Cls = cls (
+  val footer: Cls = cls(
     color := "gray",
-    textAlign:="right"
+    textAlign := "right"
   )
 }

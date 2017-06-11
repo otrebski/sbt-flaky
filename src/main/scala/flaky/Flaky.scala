@@ -51,7 +51,7 @@ case class FlakyTest(test: Test,
 
   def failures(): Int = failedRuns.size
 
-  def failurePercent() = (100f * failures()) / totalRun
+  def failurePercent(): Float = (100f * failures()) / totalRun
 
   def groupByStacktrace(): List[List[TestCase]] = {
     failedRuns.map { tc =>
@@ -96,6 +96,14 @@ case class FlakyTestReport(projectName: String, timeDetails: TimeDetails, testRu
         (clazzTestName, text.flatten.toList)
       }
   }
+
+  def successProbabilityPercent(): Float = {
+    val successProbability = flakyTests
+      .map(_.failurePercent() / 100)
+      .foldLeft(1f)((acc, x) => acc * (1 - x))
+    100 * successProbability
+  }
+
 }
 
 object Flaky {

@@ -24,7 +24,7 @@ object SlackReport {
     val flaky = flakyTestReport.flakyTests
     val duration = flakyTestReport.timeDetails.duration()
     val timeSpend = TimeReport.formatSeconds(duration / 1000)
-    val timeSpendPerIteration = if (flakyTestReport.testRuns.size > 0) {
+    val timeSpendPerIteration = if (flakyTestReport.testRuns.nonEmpty) {
       TimeReport.formatSeconds((duration / flakyTestReport.testRuns.size) / 1000)
     } else {
       "?"
@@ -76,7 +76,7 @@ object SlackReport {
          |  "color": "danger",
          |  "pretext": "Flaky test report for $projectName. Test were run ${flakyTestReport.testRuns.size} times",
          |  "author_name": "sbt-flaky",
-         |  "title": "Flaky test result: $failedCount test failed of ${flaky.size} tests.\\nTest were running for $timeSpend [$timeSpendPerIteration/iteration]",
+         |  "title": "Flaky test result: $failedCount test failed of ${flaky.size} tests.\\nBuild success probability is ${flakyTestReport.successProbabilityPercent()}.\\nTest were running for $timeSpend [$timeSpendPerIteration/iteration]",
          |  "text": "${flakyText.escapeJson()}",
          |  "footer": "sbt-flaky",
          |  "ts": $timestamp
