@@ -58,8 +58,24 @@ object ReportCss extends StyleSheet {
   )
 
   val historyIcon: Cls = cls(
+    verticalAlign := "middle",
     paddingLeft := "3px"
   )
+
+  val gitIcon: Cls = cls(
+    verticalAlign := "middle",
+    paddingLeft := "3px"
+  )
+
+  val diffIcon: Cls = cls(
+    verticalAlign := "middle",
+    paddingLeft := "3px"
+  )
+
+  val successBar: Cls = cls(
+    verticalAlign := "middle"
+  )
+
 
   val title: Cls = cls(
     border := "solid black 1px",

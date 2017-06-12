@@ -24,7 +24,11 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
   println("History data loaded")
   Io.writeToFile(new File("historyChart.html"), renderHistory(historyReport1, Git(new File(".")), ""))
 
-  case class BuildDiff(historyReport: HistoryReportDescription, buildNr: Int, gitCommits: List[GitCommit])
+  case class BuildDiff(
+                        historyReport: HistoryReportDescription,
+                        buildNr: Int,
+                        gitCommits: List[GitCommit] = List.empty,
+                        commitForPreviousBuild: Option[String] = None)
 
   def calculateBuildDiffs(historyReportDescription: List[HistoryReportDescription], git: Git): List[BuildDiff] = {
     if (historyReportDescription.nonEmpty) {
@@ -33,7 +37,7 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
         .zipWithIndex
         .reverse
         .map {
-          case (hrd, index) => BuildDiff(hrd, index + 1, List.empty)
+          case (hrd, index) => BuildDiff(hrd, index + 1)
         }
       val tuples: immutable.Seq[(BuildDiff, Option[String])] = descriptionsFromNewest.zip(descriptionsFromNewest.tail.map(_.historyReport.gitCommitHash))
       val buildInfo: immutable.Seq[BuildDiff] = tuples.map {
@@ -42,7 +46,10 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
             currentCommit <- buildDiff.historyReport.gitCommitHash
             previousCommit <- maybePreviousHash
           } yield git.commitsList(previousCommit, currentCommit).getOrElse(List.empty)
-          buildDiff.copy(gitCommits = commits.getOrElse(List.empty).sortBy(_.commitTime).reverse)
+          buildDiff.copy(
+            gitCommits = commits.getOrElse(List.empty).sortBy(_.commitTime).reverse,
+            commitForPreviousBuild = maybePreviousHash
+          )
       }
       val firstBuild = descriptionsFromNewest.lastOption.toList
       buildInfo.toList ::: firstBuild
@@ -52,7 +59,7 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
   }
 
   private def processChanges(historyReport: HistoryReport, git: Git) = {
-
+    val gitRepo: Option[GitRepo] = git.remoteUrl().toOption.flatMap(GitRepo.fromUrl)
     val buildDiffs: immutable.Seq[BuildDiff] = calculateBuildDiffs(historyReport.historicalRuns.map(_.historyReportDescription), git)
 
     val diffsHtml: immutable.Seq[Text.TypedTag[String]] = buildDiffs.flatMap {
@@ -64,26 +71,56 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
         val build = s"${buildDiff.buildNr} - ${new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(hrdCurrent.timestamp)}"
         val listOfCommits: immutable.Seq[GitCommit] = commits.sortBy(_.commitTime).reverse
 
-        def commitToRow(first: GitCommit, style: Cls) = Seq(
-          td(style, first.id),
-          td(style, first.author),
-          td(style, first.shortMsg)
-        )
+        def commitToRow(commit: Option[GitCommit], style: Cls) = {
 
-        val currentVersion: String = hrdCurrent.gitCommitHash.getOrElse("?")
+          val idCell: Option[Text.TypedTag[String]] = for {
+            c <- commit
+            gr <- gitRepo
+          } yield td(
+            style,
+            a(
+              href := gr.commitLink(c),
+              title := "Click to open commit details",
+              c.id,
+              img(ReportCss.gitIcon, src := "git.png")
+            )
+          )
+          val id: Text.TypedTag[String] = idCell.getOrElse(td(style, "-"))
+          val author = commit.map(_.author).getOrElse("-")
+          val message = commit.map(_.shortMsg).getOrElse("-")
+          Seq(
+            id,
+            td(style, author),
+            td(style, message)
+          )
+        }
+
+        val link: Option[String] = for {
+          current <- hrdCurrent.gitCommitHash
+          previous <- buildDiff.commitForPreviousBuild if current != previous
+          gr <- gitRepo
+        } yield gr.diffLink(previous, current)
+        val currentGitHash = {
+          hrdCurrent.gitCommitHash.getOrElse("?")
+        }
+        val currentVersion: Text.TypedTag[String] =
+          link
+            .map(l => a(href := l, currentGitHash, title := "Click to open diff between builds", img(ReportCss.diffIcon, src := "diff.png")))
+            .getOrElse(p(currentGitHash))
+
         val changes: Seq[Text.TypedTag[String]] = listOfCommits match {
           case Nil => Seq(
             tr(
               td(ReportCss.diffTableTdBuild, build),
               td(ReportCss.diffTableTdGitHash, currentVersion),
-              commitToRow(GitCommit("-", "-", "-", 0), ReportCss.diffTableTdFirstCommit))
+              commitToRow(None, ReportCss.diffTableTdFirstCommit))
           )
           case first :: tail =>
             tr(ReportCss.diffTableTr,
               td(rowspan := s"${tail.size + 1}", build, ReportCss.diffTableTdBuild),
               td(rowspan := s"${tail.size + 1}", currentVersion, ReportCss.diffTableTdGitHash),
-              commitToRow(first, ReportCss.diffTableTdFirstCommit)) ::
-              tail.map { c => tr(ReportCss.diffTableTr, commitToRow(c, ReportCss.diffTableTdCommit)) }
+              commitToRow(Some(first), ReportCss.diffTableTdFirstCommit)) ::
+              tail.map { c => tr(ReportCss.diffTableTr, commitToRow(Some(c), ReportCss.diffTableTdCommit)) }
         }
         changes
     }
@@ -127,18 +164,19 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
     val stats: List[HistoryStat] = historyReport.historyStat()
 
     val successProbability = historyReport.historicalRuns.map(_.report.successProbabilityPercent())
-    println(s"Successes probability: $successProbability")
 
     val statsWithFailure: immutable.Seq[HistoryStat] = stats.filter(_.stats.exists(_.failedCount > 0))
     val groupedByClass: Map[String, immutable.Seq[HistoryStat]] = statsWithFailure.groupBy(_.test.clazz)
 
+    val remote: String = git.remoteUrl().toOption.map(_.toString).getOrElse("Git repo unkonw")
+    val gitRepo: String = git.remoteUrl().toOption.flatMap(GitRepo.fromUrl).map(_.toString).getOrElse("Git repo unkonw")
     val page = html(
       head(link(rel := "stylesheet", href := "report.css")),
       body(
         h1(ReportCss.title, s"History trends of flaky tests for ${historyReport.project}"),
         h2(ReportCss.subtitle, "Build success probability"),
         p(SvgChart.successChart(successProbability)),
-        p("Build success probability is change that none of flaky test will fail during build."),
+        p("Build success probability is chance that none of tests will fail during build."),
         processChanges(historyReport, git),
         p(a(href := currentResultFile, h3("Last detailed report"))),
         h2(ReportCss.subtitle, "Details"),

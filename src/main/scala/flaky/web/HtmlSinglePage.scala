@@ -34,7 +34,7 @@ object HtmlSinglePage {
     import scalatags.Text.svgTags._
     val red = failurePercent.toInt
     val green = 100 - red
-    svg(svgWidth := "100", svgHeight := "20")(
+    svg(ReportCss.successBar, svgWidth := "100", svgHeight := "20")(
       rect(svgWidth := s"$green", svgHeight := 20, fill := "rgb(0,195,0)"),
       rect(x := s"$green", svgWidth := s"$red", svgHeight := 20, fill := "rgb(255,30,30)"),
       text(x := "10", y := "15")(f"${100 - failurePercent}%.2f%%")

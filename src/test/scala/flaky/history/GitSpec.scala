@@ -28,7 +28,6 @@ class GitSpec extends WordSpec with Matchers with BeforeAndAfterAll with Unzip {
       .zipWithIndex
         .map(a => GitCommit(a._1._1, "user@email.com", s"Commit ${a._2 + 1}", a._1._2))
         .reverse
-
       git.history() shouldBe Success(expected)
     }
     "find commits list between 2 hashes" in {
@@ -48,6 +47,11 @@ class GitSpec extends WordSpec with Matchers with BeforeAndAfterAll with Unzip {
     "find git root folder" in {
       val gitInSubfolder = Git(new File(unzipDir, "gitrepo/.git/logs/"))
       gitInSubfolder.currentId() shouldBe Success("9d74e32")
+    }
+
+    "resolve remote repo" in {
+      val git = Git(new File("."))
+      git.remoteUrl().map(_.contains("github.com")) shouldBe Success(true)
     }
   }
 

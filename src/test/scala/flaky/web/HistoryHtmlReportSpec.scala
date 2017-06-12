@@ -20,6 +20,7 @@ class HistoryHtmlReportSpec extends WordSpec with Matchers {
           .reverse
       )
 
+    override def remoteUrl(): Try[String] = Success("http://github.com/a/b")
   }
 
   "HistoryHtmlReportTest" should {
@@ -61,8 +62,8 @@ class HistoryHtmlReportSpec extends WordSpec with Matchers {
           GitCommit("0000004", "a@a.pl", "msg", 4),
           GitCommit("0000003", "a@a.pl", "msg", 3),
           GitCommit("0000002", "a@a.pl", "msg", 2)
-        )),
-        BuildDiff(hrd.head, 1, List.empty[GitCommit])
+        ), Some("0000001")),
+        BuildDiff(hrd.head, 1, List.empty[GitCommit], None)
       )
     }
 
@@ -79,8 +80,8 @@ class HistoryHtmlReportSpec extends WordSpec with Matchers {
           GitCommit("0000004", "a@a.pl", "msg", 4),
           GitCommit("0000003", "a@a.pl", "msg", 3),
           GitCommit("0000002", "a@a.pl", "msg", 2)
-        )),
-        BuildDiff(hrd(1), 2, List.empty[GitCommit]),
+        ),Some("0000001")),
+        BuildDiff(hrd(1), 2, List.empty[GitCommit], None),
         BuildDiff(hrd.head, 1, List.empty[GitCommit])
       )
     }
