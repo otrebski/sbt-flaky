@@ -63,6 +63,8 @@ trait Git {
     history().map(_.dropWhile(_.id != current).takeWhile(_.id != previous))
   }
 
+  def remoteUrl(): Try[String]
+
 }
 
 class GitUsingJgit(repository: Repository) extends Git {
@@ -96,6 +98,15 @@ class GitUsingJgit(repository: Repository) extends Git {
       commit.getCommitTime
     )
 
+  override def remoteUrl(): Try[String] = {
+    Try {
+      repository.getConfig.getString("remote", "origin", "url")
+    } match {
+      case Success(null) => Failure(new Exception("No remote repo found"))
+      case Success(s) => Success(s)
+      case Failure(ex) => Failure(ex)
+    }
+  }
 }
 
 case class GitCommit(id: String, author: String, shortMsg: String, commitTime: Int)

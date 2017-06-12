@@ -20,6 +20,7 @@ class HistoryHtmlReportSpec extends WordSpec with Matchers {
           .reverse
       )
 
+    override def remoteUrl(): Try[String] = Success("http://github.com/a/b")
   }
 
   "HistoryHtmlReportTest" should {
