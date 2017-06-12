@@ -149,8 +149,9 @@ object FlakyCommand {
     }
     Io.writeToFile(new File(flakyReportsDirHtml, "index.html"), web.indexHtml(fileHtmlReport, maybeHistoryReports.map(_ => historyFile())))
     Io.writeToFile(new File(flakyReportsDirHtml, "report.css"), ReportCss.styleSheetText)
-    val is = this.getClass.getClassLoader.getResourceAsStream("chart-down-color.png")
-    Io.writeToFile(new File(flakyReportsDirHtml, "history.png"),is)
+    Io.writeToFile(new File(flakyReportsDirHtml, "history.png"), this.getClass.getClassLoader.getResourceAsStream("chart-down-color.png"))
+    Io.writeToFile(new File(flakyReportsDirHtml, "diff.png"), this.getClass.getClassLoader.getResourceAsStream("edit-diff.png"))
+    Io.writeToFile(new File(flakyReportsDirHtml, "git.png"), this.getClass.getClassLoader.getResourceAsStream("git.png"))
   }
 
 
