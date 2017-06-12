@@ -51,7 +51,7 @@ class GitSpec extends WordSpec with Matchers with BeforeAndAfterAll with Unzip {
 
     "resolve remote repo" in {
       val git = Git(new File("."))
-      git.remoteUrl() shouldBe Success("https://otrebski@github.com/otrebski/sbt-flaky.git")
+      git.remoteUrl().map(_.contains("github.com")) shouldBe Success(true)
     }
   }
 
