@@ -4,16 +4,18 @@ import org.scalatest.{Matchers, WordSpec}
 
 class FlakyTestReportSpec extends WordSpec with Matchers {
 
-  val test = Test("", "")
-  val timeDetails = TimeDetails(0, 0)
-  val someFailureDetails = Some(FailureDetails("", "", ""))
-  val flakyTest = FlakyTest(
+  private val test = Test("", "")
+  private val timeDetails = TimeDetails(0, 0)
+  private val someFailureDetails = Some(FailureDetails("", "", ""))
+  private val testCase = TestCase("", test, 0, someFailureDetails)
+  private val flakyTest = FlakyTest(
     test,
     10,
     List(
-      TestCase("", test, 0, someFailureDetails)
+      testCase
     )
   )
+  private val testRuns: List[TestRun] = (0 until 10).map(i => TestRun(s"a$i", List(testCase))).toList
 
   "FlakyTestReportSpec" should {
 
@@ -22,7 +24,7 @@ class FlakyTestReportSpec extends WordSpec with Matchers {
       val report: FlakyTestReport = FlakyTestReport(
         "",
         timeDetails,
-        List.empty[TestRun],
+        testRuns,
         List(flakyTest)
       )
       report.successProbabilityPercent() shouldBe 90.0
@@ -33,7 +35,7 @@ class FlakyTestReportSpec extends WordSpec with Matchers {
       val report: FlakyTestReport = FlakyTestReport(
         "",
         timeDetails,
-        List.empty[TestRun],
+        testRuns,
         List(flakyTest, flakyTest, FlakyTest(test, 10, List.empty))
       )
 
@@ -46,11 +48,25 @@ class FlakyTestReportSpec extends WordSpec with Matchers {
       val report: FlakyTestReport = FlakyTestReport(
         "",
         timeDetails,
-        List.empty[TestRun],
+        testRuns,
         List(FlakyTest(test, 10, List.empty))
       )
       report.successProbabilityPercent() shouldBe 100.0
     }
 
+    "successProbabilityPercent with  \"(It is not a test)\"" in {
+      val thisIsNotATest: Test = Test("A", "(It is not a test)")
+
+      val report: FlakyTestReport = FlakyTestReport(
+        "",
+        timeDetails,
+        testRuns,
+        List(
+          FlakyTest(thisIsNotATest, 1, List.empty),
+          FlakyTest(test, 9, List.empty)
+        )
+      )
+      report.successProbabilityPercent() shouldBe 90.0
+    }
   }
 }

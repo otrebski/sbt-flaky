@@ -10,7 +10,7 @@ import scala.util.Try
 import scala.xml.{Elem, NodeSeq, XML}
 
 case class Test(clazz: String, test: String) {
-  def classNameOnly() = clazz.split('.').lastOption.getOrElse("<?>")
+  def classNameOnly(): String = clazz.split('.').lastOption.getOrElse("<?>")
 }
 
 case class TestCase(runName: String,
@@ -98,8 +98,11 @@ case class FlakyTestReport(projectName: String, timeDetails: TimeDetails, testRu
   }
 
   def successProbabilityPercent(): Float = {
+    val totalRuns = testRuns.size
     val successProbability = flakyTests
-      .map(_.failurePercent() / 100)
+      .filter(_.test.test != "(It is not a test)")
+      // Issue #38 take int account that some test are failing as test "(It is not a test)"
+      .map(t => (t.failedRuns.length + totalRuns - t.totalRun).toFloat / totalRuns)
       .foldLeft(1f)((acc, x) => acc * (1 - x))
     100 * successProbability
   }
