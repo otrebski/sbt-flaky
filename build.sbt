@@ -5,10 +5,11 @@ lazy val `sbt-flaky` =
       libraryDependencies ++= Seq(
         "org.apache.commons" % "commons-vfs2" % "2.1",
         "com.lihaoyi" %% "scalatags" % "0.6.5",
-        "com.typesafe.sbt" % "sbt-git" % "0.9.2",
+        "com.typesafe.sbt" % "sbt-git" % "0.9.3",
+        "org.scala-sbt" %% "scripted-plugin" % sbtVersion.value,
         "org.scalatest" %% "scalatest" % "3.0.1" % "test"
       ),
-      addSbtPlugin("com.typesafe.sbt" % "sbt-git" % "0.9.2")
+      addSbtPlugin("com.typesafe.sbt" % "sbt-git" % "0.9.3")
     )
 
 git.useGitDescribe := true
@@ -17,15 +18,15 @@ organization := "pl.otrebski"
 
 name := "sbt-flaky"
 
-version := "0.12"
+version := "0.13"
 
-//scalaVersion := "2.11.8"
+scalaVersion := "2.12.3"
 
 sbtPlugin := true
 
-javaVersionPrefix in javaVersionCheck := Some("1.8") //Should I compile with specific version?
+//javaVersionPrefix in javaVersionCheck := Some("1.8") //Should I compile with specific version?
 
-ScriptedPlugin.scriptedSettings
+//ScriptedPlugin.scriptedSettings
 
 scriptedLaunchOpts := {
   scriptedLaunchOpts.value ++

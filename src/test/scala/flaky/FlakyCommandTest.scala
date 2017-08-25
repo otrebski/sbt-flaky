@@ -29,14 +29,24 @@ class FlakyCommandTest extends WordSpec with Unzip with Matchers {
         override def accept(pathname: File): Boolean = pathname.isDirectory
       }).map(_.getName)
 
-      val history = new History("Project x", new File("./src/test/resources/history8/"), new File(""), new File("."))
+      val htmlReportDir = new File("./target/example-report")
+      val historyDir = new File("/Users/k.otrebski/tmp/history")
+
+      val history = new History(
+        project = "Project x",
+        historyDir = historyDir,
+        flakyReportDir = htmlReportDir,
+        projectDir = new File("."))
+
       val historyReport1 = history.createHistoryReport()
       val timeDetails = TimeDetails(System.currentTimeMillis() - 9000000L, System.currentTimeMillis())
       val report = Flaky.createReport("Project X", timeDetails, dirs.toList, reportDir)
 
       unzip(zippedGitRepo, unzippedGitDir)
-      val git = Git(new File(unzippedGitDir, "gitrepo/"))
-      val htmlReportDir = new File("./target/example-report")
+//      val gitDir = new File(unzippedGitDir, "gitrepo/")
+      val gitDir = new File("/Users/k.otrebski/tmp/decant")
+      val git = Git(gitDir)
+
       FlakyCommand.createHtmlReports("Project x", report, Some(historyReport1), htmlReportDir, git, log)
 
       new File(htmlReportDir,"index.html").exists shouldBe true
