@@ -1,6 +1,6 @@
 lazy val `sbt-flaky` =
   (project in file("."))
-    .enablePlugins(GitVersioning, GitBranchPrompt)
+    .enablePlugins(GitVersioning, GitBranchPrompt, ScriptedPlugin)
     .settings(
       libraryDependencies ++= Seq(
         "org.apache.commons" % "commons-vfs2" % "2.1",
@@ -9,7 +9,8 @@ lazy val `sbt-flaky` =
         "org.scala-sbt" %% "scripted-plugin" % sbtVersion.value,
         "org.scalatest" %% "scalatest" % "3.0.1" % "test"
       ),
-      addSbtPlugin("com.typesafe.sbt" % "sbt-git" % "0.9.3")
+      addSbtPlugin("com.typesafe.sbt" % "sbt-git" % "0.9.3"),
+      sbtPlugin := true
     )
 
 git.useGitDescribe := true
@@ -22,18 +23,6 @@ version := "0.13"
 
 scalaVersion := "2.12.3"
 
-sbtPlugin := true
-
-//javaVersionPrefix in javaVersionCheck := Some("1.8") //Should I compile with specific version?
-
-//ScriptedPlugin.scriptedSettings
-
-scriptedLaunchOpts := {
-  scriptedLaunchOpts.value ++
-    Seq("-Xmx1024M", "-XX:MaxPermSize=256M", "-Dplugin.version=" + version.value)
-}
-
-scriptedBufferLog := false
 
 publishMavenStyle := false
 
