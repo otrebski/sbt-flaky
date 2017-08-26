@@ -6,6 +6,8 @@ import flaky.history.{Git, History}
 import org.scalatest.{Matchers, WordSpec}
 import sbt.{FileFilter, Level}
 
+import scala.util.{Failure, Success, Try}
+
 class FlakyCommandTest extends WordSpec with Unzip with Matchers {
 
   private val zippedGitRepo = new File("./src/test/resources", "gitrepo.zip")
@@ -52,7 +54,16 @@ class FlakyCommandTest extends WordSpec with Unzip with Matchers {
       val gitDir = new File("/Users/k.otrebski/tmp/decant")
       val git = Git(gitDir)
       println("Creating report")
-      FlakyCommand.createHtmlReports("Project x", report, Some(historyReport1), htmlReportDir, git, log)
+      val t = Try {
+        FlakyCommand.createHtmlReports("Project x", report, Some(historyReport1), htmlReportDir, git, log)
+      }
+      t match {
+        case Success(s) =>
+        case Failure(e) =>
+          println(e.getMessage)
+          e.printStackTrace()
+          fail()
+      }
       println("Report created")
       new File(htmlReportDir,"index.html").exists shouldBe true
       new File(htmlReportDir,"flaky-report.html").exists shouldBe true
