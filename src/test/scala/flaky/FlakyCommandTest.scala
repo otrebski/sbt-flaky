@@ -23,8 +23,13 @@ class FlakyCommandTest extends WordSpec with Unzip with Matchers {
 
     "createHtmlReports" in {
       //Goal of this test is also to generate report for visual check
+      println("Will create html report")
       val reportDir = new File("./target/history8/20170523-231535")
-      unzip(new File("./src/test/resources/history8/20170523-231535.zip"), reportDir)
+      println(s"Will user $reportDir")
+      println(s"Repo dir is ${reportDir.getAbsolutePath} [${reportDir.exists()}]")
+      val file = new File("./src/test/resources/history8/20170523-231535.zip")
+      println(s"Unzipping file ${file.getAbsolutePath} [${file.exists()}]")
+      unzip(file, reportDir)
       val dirs: Array[String] = reportDir.listFiles(new FileFilter {
         override def accept(pathname: File): Boolean = pathname.isDirectory
       }).map(_.getName)
@@ -37,7 +42,7 @@ class FlakyCommandTest extends WordSpec with Unzip with Matchers {
         historyDir = historyDir,
         flakyReportDir = htmlReportDir,
         projectDir = new File("."))
-
+      println("Creating html report")
       val historyReport1 = history.createHistoryReport()
       val timeDetails = TimeDetails(System.currentTimeMillis() - 9000000L, System.currentTimeMillis())
       val report = Flaky.createReport("Project X", timeDetails, dirs.toList, reportDir)
@@ -46,9 +51,9 @@ class FlakyCommandTest extends WordSpec with Unzip with Matchers {
 //      val gitDir = new File(unzippedGitDir, "gitrepo/")
       val gitDir = new File("/Users/k.otrebski/tmp/decant")
       val git = Git(gitDir)
-
+      println("Creating report")
       FlakyCommand.createHtmlReports("Project x", report, Some(historyReport1), htmlReportDir, git, log)
-
+      println("Report created")
       new File(htmlReportDir,"index.html").exists shouldBe true
       new File(htmlReportDir,"flaky-report.html").exists shouldBe true
       new File(htmlReportDir,"flaky-report-history.html").exists shouldBe true
