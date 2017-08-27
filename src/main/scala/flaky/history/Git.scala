@@ -25,7 +25,7 @@ import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 
 import scala.annotation.tailrec
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 
 object Git {
@@ -76,6 +76,7 @@ class GitUsingJgit(repository: Repository) extends Git {
       jgit.log
         .setMaxCount(1)
         .call()
+        .asScala
         .map(_.getId.abbreviate(7).name)
         .head
     }
@@ -85,6 +86,7 @@ class GitUsingJgit(repository: Repository) extends Git {
       jgit.log
         .add(repository.resolve("master"))
         .call()
+        .asScala
         .toList
         .map(fullDesc)
     }

@@ -11,13 +11,15 @@ Example usages can be found in [demo project](https://github.com/otrebski/sbt-fl
 
 Add plugin to project configuration `project/plugins.sbt` or global configuration `~/.sbt/0.13/plugins/plugins.sbt`
 ```scala
-addSbtPlugin("pl.otrebski" % "sbt-flaky" % "0.9")
+addSbtPlugin("pl.otrebski" % "sbt-flaky" % "0.13")
 ```
 Don't forget to enable plugin in `build.sbt`
 ```scala 
 lazy val library = (project in file("."))
   .enablePlugins(FlakyPlugin)
 ```
+## Versions
+User version up to 0.12 for sbt 0.13. For sbt 1.0+ use plugin version 0.13.
 
 ## How to run
 

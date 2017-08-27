@@ -1,6 +1,6 @@
 name := "custom-task"
 
-scalaVersion := "2.11.8"
+scalaVersion := "2.12.3"
 
 val sampleTask1 = taskKey[Unit]("Create file sampleTask1.txt")
 val sampleTask2 = taskKey[Unit]("Create file sampleTask2.txt")
