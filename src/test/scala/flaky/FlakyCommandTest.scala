@@ -6,8 +6,6 @@ import flaky.history.{Git, History}
 import org.scalatest.{Matchers, WordSpec}
 import sbt.{FileFilter, Level}
 
-import scala.util.{Failure, Success, Try}
-
 class FlakyCommandTest extends WordSpec with Unzip with Matchers {
 
   private val zippedGitRepo = new File("./src/test/resources", "gitrepo.zip")
@@ -25,45 +23,22 @@ class FlakyCommandTest extends WordSpec with Unzip with Matchers {
 
     "createHtmlReports" in {
       //Goal of this test is also to generate report for visual check
-      println("Will create html report")
       val reportDir = new File("./target/history8/20170523-231535")
-      println(s"Will user $reportDir")
-      println(s"Repo dir is ${reportDir.getAbsolutePath} [${reportDir.exists()}]")
-      val file = new File("./src/test/resources/history8/20170523-231535.zip")
-      println(s"Unzipping file ${file.getAbsolutePath} [${file.exists()}]")
-      unzip(file, reportDir)
+      unzip(new File("./src/test/resources/history8/20170523-231535.zip"), reportDir)
       val dirs: Array[String] = reportDir.listFiles(new FileFilter {
         override def accept(pathname: File): Boolean = pathname.isDirectory
       }).map(_.getName)
 
-      val htmlReportDir = new File("./target/example-report")
-      val historyDir = new File("/Users/k.otrebski/tmp/history")
-
-      val history = new History(
-        project = "Project x",
-        historyDir = historyDir,
-        flakyReportDir = htmlReportDir,
-        projectDir = new File("."))
-      println("Creating html report")
+      val history = new History("Project x", new File("./src/test/resources/history8/"), new File(""), new File("."))
       val historyReport1 = history.createHistoryReport()
       val timeDetails = TimeDetails(System.currentTimeMillis() - 9000000L, System.currentTimeMillis())
       val report = Flaky.createReport("Project X", timeDetails, dirs.toList, reportDir)
 
       unzip(zippedGitRepo, unzippedGitDir)
-      val gitDir = new File(unzippedGitDir, "gitrepo/")
-      val git = Git(gitDir)
-      println("Creating report")
-      val t = Try {
-        FlakyCommand.createHtmlReports("Project x", report, Some(historyReport1), htmlReportDir, git, log)
-      }
-      t match {
-        case Success(s) => println("Html report created")
-        case Failure(e) => println("Exception !")
-          println(e.getMessage)
-          e.printStackTrace(System.out)
-          fail("Not created!")
-      }
-      println("Report created")
+      val git = Git(new File(unzippedGitDir, "gitrepo/"))
+      val htmlReportDir = new File("./target/example-report")
+      FlakyCommand.createHtmlReports("Project x", report, Some(historyReport1), htmlReportDir, git, log)
+
       new File(htmlReportDir,"index.html").exists shouldBe true
       new File(htmlReportDir,"flaky-report.html").exists shouldBe true
       new File(htmlReportDir,"flaky-report-history.html").exists shouldBe true
