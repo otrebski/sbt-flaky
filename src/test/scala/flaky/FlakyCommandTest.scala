@@ -50,19 +50,18 @@ class FlakyCommandTest extends WordSpec with Unzip with Matchers {
       val report = Flaky.createReport("Project X", timeDetails, dirs.toList, reportDir)
 
       unzip(zippedGitRepo, unzippedGitDir)
-//      val gitDir = new File(unzippedGitDir, "gitrepo/")
-      val gitDir = new File("/Users/k.otrebski/tmp/decant")
+      val gitDir = new File(unzippedGitDir, "gitrepo/")
       val git = Git(gitDir)
       println("Creating report")
       val t = Try {
         FlakyCommand.createHtmlReports("Project x", report, Some(historyReport1), htmlReportDir, git, log)
       }
       t match {
-        case Success(s) =>
-        case Failure(e) =>
+        case Success(s) => println("Html report created")
+        case Failure(e) => println("Exception !")
           println(e.getMessage)
-          e.printStackTrace()
-          fail()
+          e.printStackTrace(System.out)
+          fail("Not created!")
       }
       println("Report created")
       new File(htmlReportDir,"index.html").exists shouldBe true
