@@ -148,7 +148,7 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
             id := s"${stat.test.clazz}_${stat.test.test}",
             ReportCss.testName,
             s"Test: ${stat.test.test}",
-            a(href := s"$currentResultFile#${stat.test.clazz}_${stat.test.test}", " <Details of last test>")
+            a(href := s"$currentResultFile#${anchorTest(stat.test)}", " <Details of last test>")
           ),
             SvgChart.failureChart(stat.stats.map(_.failureRate()))
           )
