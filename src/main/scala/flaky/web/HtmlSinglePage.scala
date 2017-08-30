@@ -65,10 +65,10 @@ object HtmlSinglePage {
           "(It is not a test) - There is no  test name in JUnit report"
         } else flaky.test.test
         tr(
-          td(ReportCss.summaryTableTd, a(href := s"#${flaky.test.clazz}", flaky.test.classNameOnly())),
-          td(ReportCss.summaryTableTd, a(href := s"#${flaky.test.clazz}_${flaky.test.test}", testName)),
+          td(ReportCss.summaryTableTd, a(href := s"#${anchorClass(flaky.test)}", flaky.test.classNameOnly())),
+          td(ReportCss.summaryTableTd, a(href := s"#${anchorTest(flaky.test)}", testName)),
           td(ReportCss.summaryTableTd, successBarChar(flaky.failurePercent())),
-          td(ReportCss.summaryTableTd, historyFile.map(f => a(href := s"$f#${flaky.test.clazz}_${flaky.test.test}", img(src := "history.png"))))
+          td(ReportCss.summaryTableTd, historyFile.map(f => a(href := s"$f#${anchorTest(flaky.test)}", img(src := "history.png"))))
         )
       }
 
@@ -125,7 +125,7 @@ object HtmlSinglePage {
                     id := s"${test.clazz}_${test.test}",
                     ReportCss.testName,
                     failureBarChar(fc.runNames.size, testRunsCount),
-                    historyFile.map(f => a(href := s"$f#${test.clazz}_${test.test}", img(ReportCss.historyIcon, src := "history.png", alt := "History trends"))),
+                    historyFile.map(f => a(href := s"$f#${anchorTest(test)}", img(ReportCss.historyIcon, src := "history.png", alt := "History trends"))),
                     s" ${test.test} failed ${fc.runNames.size} time${if (fc.runNames.size > 1) "s" else ""}"
                   ),
                   p(b(s"Stacktrace:"), code(fc.stacktrace)),

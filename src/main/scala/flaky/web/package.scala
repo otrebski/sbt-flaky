@@ -41,4 +41,12 @@ package object web {
       )
     ).render
   }
+
+  def anchorTest(test: Test): String = {
+    s"${test.clazz}_${test.test}"
+  }
+
+  def anchorClass(test:Test) : String = {
+    test.clazz
+  }
 }
