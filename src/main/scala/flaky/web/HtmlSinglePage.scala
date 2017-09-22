@@ -18,7 +18,6 @@ object HtmlSinglePage {
     }
   }
 
-  //link rel="stylesheet" href="/css/default-revision127820f2c48d21381bb6eea8664c2658.css" />
   def renderNoFailures(flakyTestReport: FlakyTestReport, historyFile: Option[String]): String =
     html(
       head(link(rel := "stylesheet", href := "report.css")),
@@ -118,7 +117,10 @@ object HtmlSinglePage {
           .map {
             fc =>
               val test = fc.test
-              val runNames = fc.runNames.sorted.mkString(", ")
+              val runNames = fc.runNames
+                .sortWith((t1, t2) => t1.toInt < t2.toInt)
+                .map(runName => a(s"$runName, ", href := linkToRunNameInSingleTest(test, runName)))
+
               val text =
                 p(
                   h4(
@@ -130,7 +132,7 @@ object HtmlSinglePage {
                   ),
                   p(b(s"Stacktrace:"), code(fc.stacktrace)),
                   message(fc),
-                  p(s"Test failed in following runs $runNames")
+                  p(a(href := linkToSingleTest(test), s"Test failed in following runs: "), runNames)
                 )
               text
           }
