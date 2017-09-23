@@ -5,7 +5,7 @@ import java.io.File
 import flaky.FlakyPlugin._
 import flaky.history._
 import flaky.report.{SlackReport, TextReport}
-import flaky.web.{HistoryHtmlReport, HtmlSinglePage, OneTestReport, ReportCss}
+import flaky.web.{HistoryHtmlReport, HtmlSinglePage, SingleTestReport, ReportCss}
 import sbt._
 
 object FlakyCommand {
@@ -154,7 +154,7 @@ object FlakyCommand {
         case _=> new File(flakyReportsDirHtml, web.singleTestDir(flakyTest.test))
       }
       singleTestDir.mkdirs()
-      Io.writeToFile(new File(singleTestDir, web.singleTestFileName(flakyTest.test)), OneTestReport.pageSource(flakyTest))
+      Io.writeToFile(new File(singleTestDir, web.singleTestFileName(flakyTest.test)), SingleTestReport.pageSource(flakyTest))
     }
     Io.writeToFile(new File(flakyReportsDirHtml, "report.css"), ReportCss.styleSheetText)
     Io.writeToFile(new File(flakyReportsDirHtml, "history.png"), this.getClass.getClassLoader.getResourceAsStream("chart-down-color.png"))

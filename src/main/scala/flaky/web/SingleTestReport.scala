@@ -4,7 +4,7 @@ import flaky.FlakyTest
 
 import scalatags.Text.all._
 
-object OneTestReport {
+object SingleTestReport {
 
   def pageSource(flakyTest: FlakyTest): String = {
     val ft = flakyTest.failedRuns
