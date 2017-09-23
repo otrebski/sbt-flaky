@@ -5,7 +5,7 @@ import java.io.File
 import flaky.FlakyPlugin._
 import flaky.history._
 import flaky.report.{SlackReport, TextReport}
-import flaky.web.{HistoryHtmlReport, HtmlSinglePage, ReportCss}
+import flaky.web.{HistoryHtmlReport, HtmlSinglePage, SingleTestReport, ReportCss}
 import sbt._
 
 object FlakyCommand {
@@ -147,7 +147,17 @@ object FlakyCommand {
       Io.writeToFile(fileHistoryHtmlReport, historyHtmlReport)
       log.info(s"History HTML report saved in ${fileHistoryHtmlReport.getAbsolutePath}")
     }
+
     Io.writeToFile(new File(flakyReportsDirHtml, "index.html"), web.indexHtml(fileHtmlReport, maybeHistoryReports.map(_ => historyFile())))
+    report.flakyTests.foreach { flakyTest =>
+      val singleTestDir = web.singleTestDir(flakyTest.test) match {
+        case "" => flakyReportsDirHtml
+        case _=> new File(flakyReportsDirHtml, web.singleTestDir(flakyTest.test))
+      }
+      singleTestDir.mkdirs()
+      Io.writeToFile(new File(singleTestDir, web.singleTestFileName(flakyTest.test)), SingleTestReport.pageSource(flakyTest))
+    }
+
     Io.writeToFile(new File(flakyReportsDirHtml, "report.css"), ReportCss.styleSheetText)
     Io.writeToFile(new File(flakyReportsDirHtml, "history.png"), this.getClass.getClassLoader.getResourceAsStream("chart-down-color.png"))
     Io.writeToFile(new File(flakyReportsDirHtml, "diff.png"), this.getClass.getClassLoader.getResourceAsStream("edit-diff.png"))

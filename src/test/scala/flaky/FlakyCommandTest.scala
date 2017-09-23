@@ -4,20 +4,14 @@ import java.io.File
 
 import flaky.history.{Git, History}
 import org.scalatest.{Matchers, WordSpec}
-import sbt.{FileFilter, Level}
+import sbt.FileFilter
 
 class FlakyCommandTest extends WordSpec with Unzip with Matchers {
 
   private val zippedGitRepo = new File("./src/test/resources", "gitrepo.zip")
   private val unzippedGitDir = new File("target/")
 
-  val log: _root_.sbt.Logger = new _root_.sbt.Logger() {
-    override def trace(t: => Throwable): Unit = {}
-
-    override def success(message: => String): Unit = {}
-
-    override def log(level: Level.Value, message: => String): Unit = {}
-  }
+  val log = new DummySbtLogger()
 
   "FlakyCommandTest" should {
 

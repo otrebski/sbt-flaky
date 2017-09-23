@@ -43,6 +43,11 @@ object ReportCss extends StyleSheet {
     padding := "5px"
   )
 
+  val exception: Cls = cls(
+    color := "#800000",
+    padding := "5px"
+  )
+
   val summaryTable: Cls = cls(
     border := "1px solid",
     borderLeft := "5px solid",
@@ -86,6 +91,15 @@ object ReportCss extends StyleSheet {
   )
 
   val subtitle: Cls = cls(
+    border := "solid black 1px",
+    borderLeftWidth := "5px",
+    borderRadius := "5px",
+    paddingLeft := "20px",
+    color := "#014a08",
+    backgroundColor := "antiquewhite"
+  )
+
+  val runName: Cls = cls(
     border := "solid black 1px",
     borderLeftWidth := "5px",
     borderRadius := "5px",
@@ -153,5 +167,14 @@ object ReportCss extends StyleSheet {
   val footer: Cls = cls(
     color := "gray",
     textAlign := "right"
+  )
+
+  val header: Cls = cls(
+//    position := "fixed",
+//    top := "0px"
+  )
+
+  val content: Cls = cls(
+//    marginTop := "200px"
   )
 }

@@ -1,3 +1,4 @@
+package subfolder.subsubfolder
 import com.typesafe.scalalogging._
 import org.scalatest._
 

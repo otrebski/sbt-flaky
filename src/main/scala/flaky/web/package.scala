@@ -42,11 +42,17 @@ package object web {
     ).render
   }
 
-  def anchorTest(test: Test): String = {
-    s"${test.clazz}_${test.test}"
-  }
+  def anchorTest(test: Test): String = s"${test.clazz}_${test.test}"
 
-  def anchorClass(test:Test) : String = {
-    test.clazz
-  }
+  def anchorClass(test: Test): String = test.clazz
+
+  def anchorTestRun(testCase: TestCase): String = testCase.runName
+
+  def singleTestDir(test: Test): String = test.clazz
+
+  def singleTestFileName(test: Test): String = s"${test.test.replaceAll("/", "_")}.html"
+
+  def linkToSingleTest(test: Test) = singleTestDir(test) + "/" + singleTestFileName(test)
+
+  def linkToRunNameInSingleTest(test: Test,runName:String) = s"${linkToSingleTest(test)}#$runName"
 }
