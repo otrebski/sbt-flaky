@@ -17,9 +17,10 @@ object RenderHtml extends App with Unzip {
     }).minBy(_.getName)
 
   private val projectZip = new File("src/test/resources/gitrepo.zip")
-  private val projectDir = new File("target/unzipped/gitrepo")
+  private val unzipDir = new File("target/unzipped/")
   println(s"Unzipping ${zipFile.getPath}")
-  unzip(projectZip, projectDir)
+  unzip(projectZip, unzipDir)
+  private val projectDir = new File(unzipDir,"gitrepo")
 
   private val report = Flaky.createReportFromHistory(VFS.getManager.resolveFile(zipFile.toURI.toString.replace("file:/", "zip:/")))
   private val historyReport: HistoryReport = new History("My App", dirWithReports, new File(""), projectDir).createHistoryReport()
