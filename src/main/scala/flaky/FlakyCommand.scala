@@ -147,6 +147,7 @@ object FlakyCommand {
       Io.writeToFile(fileHistoryHtmlReport, historyHtmlReport)
       log.info(s"History HTML report saved in ${fileHistoryHtmlReport.getAbsolutePath}")
     }
+
     Io.writeToFile(new File(flakyReportsDirHtml, "index.html"), web.indexHtml(fileHtmlReport, maybeHistoryReports.map(_ => historyFile())))
     report.flakyTests.foreach { flakyTest =>
       val singleTestDir = web.singleTestDir(flakyTest.test) match {
@@ -156,6 +157,7 @@ object FlakyCommand {
       singleTestDir.mkdirs()
       Io.writeToFile(new File(singleTestDir, web.singleTestFileName(flakyTest.test)), SingleTestReport.pageSource(flakyTest))
     }
+
     Io.writeToFile(new File(flakyReportsDirHtml, "report.css"), ReportCss.styleSheetText)
     Io.writeToFile(new File(flakyReportsDirHtml, "history.png"), this.getClass.getClassLoader.getResourceAsStream("chart-down-color.png"))
     Io.writeToFile(new File(flakyReportsDirHtml, "diff.png"), this.getClass.getClassLoader.getResourceAsStream("edit-diff.png"))
