@@ -6,6 +6,9 @@ lazy val `sbt-flaky` =
         "org.apache.commons" % "commons-vfs2" % "2.1",
         "com.lihaoyi" %% "scalatags" % "0.6.5",
         "com.typesafe.sbt" % "sbt-git" % "0.9.3",
+        "io.circe" %% "circe-core" % "0.8.0",
+        "io.circe" %% "circe-generic" % "0.8.0",
+        "io.circe" %% "circe-parser" % "0.8.0",
         "org.scala-sbt" %% "scripted-plugin" % sbtVersion.value,
         "org.scalatest" %% "scalatest" % "3.0.1" % "test"
       ),
