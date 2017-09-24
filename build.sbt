@@ -16,9 +16,6 @@ lazy val `sbt-flaky` =
       sbtPlugin := true
     )
 
-
-resolvers += "Sonatype OSS" at "https://oss.sonatype.org/content/repositories/releases"
-
 git.useGitDescribe := true
 
 organization := "pl.otrebski"
