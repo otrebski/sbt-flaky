@@ -28,20 +28,25 @@ object HtmlSinglePage {
       )
     ).render
 
-  def successBarChar(failurePercent: Float): Text.TypedTag[String] = {
+
+  def failureBarChar(failurePercent: Float): Text.TypedTag[String] = {
+    successBarChar(100-failurePercent)
+  }
+
+  def successBarChar(successPercent: Float): Text.TypedTag[String] = {
     import scalatags.Text.svgAttrs.{fill, x, y, height => svgHeight, width => svgWidth}
     import scalatags.Text.svgTags._
-    val red = failurePercent.toInt
-    val green = 100 - red
+    val green = successPercent.toInt
+    val red = 100 - successPercent.toInt
     svg(ReportCss.successBar, svgWidth := "100", svgHeight := "20")(
       rect(svgWidth := s"$green", svgHeight := 20, fill := "rgb(0,195,0)"),
       rect(x := s"$green", svgWidth := s"$red", svgHeight := 20, fill := "rgb(255,30,30)"),
-      text(x := "10", y := "15")(f"${100 - failurePercent}%.2f%%")
+      text(x := "10", y := "15")(f"$successPercent%.2f%%")
     )
   }
 
   def failureBarChar(failed: Int, runs: Int): Text.TypedTag[String] = {
-    successBarChar(100f * failed / runs)
+    failureBarChar(100f * failed / runs)
   }
 
 
@@ -66,7 +71,7 @@ object HtmlSinglePage {
         tr(
           td(ReportCss.summaryTableTd, a(href := s"#${anchorClass(flaky.test)}", flaky.test.classNameOnly())),
           td(ReportCss.summaryTableTd, a(href := s"#${anchorTest(flaky.test)}", testName)),
-          td(ReportCss.summaryTableTd, successBarChar(flaky.failurePercent())),
+          td(ReportCss.summaryTableTd, failureBarChar(flaky.failurePercent())),
           td(ReportCss.summaryTableTd, historyFile.map(f => a(href := s"$f#${anchorTest(flaky.test)}", img(src := "history.png"))))
         )
       }
