@@ -177,6 +177,13 @@ object HistoryHtmlReport extends App with HistoryReportRenderer {
         h2(ReportCss.subtitle, "Build success probability"),
         p(SvgChart.successChart(successProbability)),
         p("Build success probability is chance that none of tests will fail during build."),
+        code(
+          "P = 100 * sr1 * sr2 * ... * srN",
+          br,
+          "sr1 = passed count / total test runs count",
+          br,
+          "sr1: success rate for a single test case"
+        ),
         processChanges(historyReport, git),
         p(a(href := currentResultFile, h3("Last detailed report"))),
         h2(ReportCss.subtitle, "Details"),
