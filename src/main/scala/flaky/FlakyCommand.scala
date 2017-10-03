@@ -5,7 +5,7 @@ import java.io.File
 import flaky.FlakyPlugin._
 import flaky.history._
 import flaky.report.{SlackReport, TextReport}
-import flaky.web.{HistoryHtmlReport, HtmlSinglePage, SingleTestReport, ReportCss}
+import flaky.web.{HistoryHtmlReport, HtmlSinglePage, ReportCss, SingleTestReport}
 import sbt._
 
 object FlakyCommand {
@@ -15,17 +15,19 @@ object FlakyCommand {
       val targetDir = Project.extract(state).get(Keys.target)
       val baseDirectory = Project.extract(state).get(Keys.baseDirectory)
 
-      //TODO settingKey
+
       val testReports = new File(targetDir, "test-reports")
       val flakyReportsDir = new File(targetDir, Project.extract(state).get(autoImport.flakyReportsDir))
-      val flakyReportsDirHtml = new File(targetDir, Project.extract(state).get(autoImport.flakyReportsHtmlSinglePage))
+      val flakyReportsDirHtml = new File(targetDir, Project.extract(state).get(autoImport.flakyHtmlReportDir))
       val logFiles = Project.extract(state).get(autoImport.flakyAdditionalFiles)
       val logLevelInTask = Project.extract(state).get(autoImport.flakyLogLevelInTask)
       val slackHook: Option[String] = Project.extract(state).get(autoImport.flakySlackHook)
       val taskKeys: Seq[TaskKey[Unit]] = Project.extract(state).get(autoImport.flakyTask)
+      val htmlReportsUrl = Project.extract(state).get(autoImport.flakyHtmlReportUrl)
+      val detailedSlackReport = Project.extract(state).get(autoImport.flakySlackDetailedReport)
       val moveFilesF = moveFiles(flakyReportsDir, testReports, logFiles) _
 
-      def runTasks(state: State, runIndex: Int) = {
+      def runTasks(state: State, runIndex: Int): Unit = {
         taskKeys.foreach { taskKey =>
           val extracted = Project extract state
           import extracted._
@@ -99,7 +101,14 @@ object FlakyCommand {
 
       textReport(baseDirectory, flakyReportsDir, report, historyOpt, state.log)
 
-      slackReport(baseDirectory, flakyReportsDir, slackHook, report, state.log)
+      slackReport(
+        baseDirectory = baseDirectory,
+        flakyReportsDir = flakyReportsDir,
+        slackHook = slackHook,
+        report = report,
+        htmlReportsUrl = htmlReportsUrl,
+        details = detailedSlackReport,
+        log = state.log)
 
       createHtmlReports(
         projectName = name,
@@ -113,16 +122,23 @@ object FlakyCommand {
   }
 
 
-  private def textReport(baseDirectory: File, flakyReportsDir: File, report: FlakyTestReport, historyOpt: Option[HistoryReport], log: Logger) = {
+  private def textReport(baseDirectory: File, flakyReportsDir: File, report: FlakyTestReport, historyOpt: Option[HistoryReport], log: Logger): Unit = {
     val textReport = TextReport.render(report)
     Io.writeToFile(new File(flakyReportsDir, "report.txt"), textReport)
     log.info(textReport)
 
   }
 
-  private def slackReport(baseDirectory: File, flakyReportsDir: File, slackHook: Option[String], report: FlakyTestReport, log: Logger) = {
+  private def slackReport(
+                           baseDirectory: File,
+                           flakyReportsDir: File,
+                           slackHook: Option[String],
+                           report: FlakyTestReport,
+                           htmlReportsUrl: Option[String],
+                           details: Boolean,
+                           log: Logger): Unit = {
     slackHook.foreach { hookId =>
-      val slackMsg = SlackReport.render(report)
+      val slackMsg = SlackReport.render(report, htmlReportsUrl, details)
       Io.sendToSlack(hookId, slackMsg, log, new File(flakyReportsDir, "slack.json"))
     }
   }
@@ -152,7 +168,7 @@ object FlakyCommand {
     report.flakyTests.foreach { flakyTest =>
       val singleTestDir = web.singleTestDir(flakyTest.test) match {
         case "" => flakyReportsDirHtml
-        case _=> new File(flakyReportsDirHtml, web.singleTestDir(flakyTest.test))
+        case _ => new File(flakyReportsDirHtml, web.singleTestDir(flakyTest.test))
       }
       singleTestDir.mkdirs()
       Io.writeToFile(new File(singleTestDir, web.singleTestFileName(flakyTest.test)), SingleTestReport.pageSource(flakyTest))
