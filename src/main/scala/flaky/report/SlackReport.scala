@@ -86,7 +86,7 @@ object SlackReport {
       color = "danger",
       pretext = s"Flaky test report for $projectName. Test were run ${flakyTestReport.testRuns.size} times",
       author_name = "sbt-flaky",
-      title = s"Flaky test result: $failedCount test failed of ${flaky.size} tests.\nBuild success probability is ${flakyTestReport.successProbabilityPercent()}.\\nTest were running for $timeSpend [$timeSpendPerIteration/iteration]",
+      title = s"$failedCount of ${flaky.size} test cases are flaky.\nBuild success probability is ${flakyTestReport.successProbabilityPercent()}.\\nTest were running for $timeSpend [$timeSpendPerIteration/iteration]",
       text = flakyText,
       footer = "sbt-flaky",
 
@@ -162,7 +162,7 @@ object SlackReport {
       pretext = s"Flaky test report for $projectName. Test were run ${flakyTestReport.testRuns.size} times",
       author_name = "sbt-flaky",
       title =
-        f"""Flaky test result: $failedCount test failed of ${flaky.size} tests.
+        f"""$failedCount of ${flaky.size} test cases are flaky.
            |Build success probability is ${flakyTestReport.successProbabilityPercent()}%.2f%%.
            |Test were running for $timeSpend [$timeSpendPerIteration/iteration]
            |${htmlReportLink.getOrElse("")}""".stripMargin,

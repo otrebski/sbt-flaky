@@ -40,10 +40,13 @@ sbt clean "flaky firstFail"
 ```
 
 ## Sending reports to slack
-To send report to Slack, set your Slack hook id as `flakySlackHook`. For example if your slack hook is `https://hooks.slack.com/services/AAAAAAAAA/BBBBBBBBB/CCCCCCCCCCCCCCCCCCCCCCCC `, add following line to build.sbt:
+To send report to Slack, set your Slack hook id as `flakySlackHook`. Boolean property `flakySlackDetailedReport` can be set true, to enable detailed report on slack. Property `flakyHtmlReportUrl` can be set to add link to HTML reports in slack report.   
+For example if your slack hook is `https://hooks.slack.com/services/AAAAAAAAA/BBBBBBBBB/CCCCCCCCCCCCCCCCCCCCCCCC `, add following line to build.sbt:
 
 ```scala
 flakySlackHook := Some("https://hooks.slack.com/services/AAAAAAAAA/BBBBBBBBB/CCCCCCCCCCCCCCCCCCCCCCCC )
+flakySlackDetailedReport := true | false
+flakyHtmlReportUrl := Some("http://my-ci-server.com/jobs/project/HTML_reports/")
 
 ```
 
