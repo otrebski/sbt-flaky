@@ -22,7 +22,7 @@ organization := "pl.otrebski"
 
 name := "sbt-flaky"
 
-version := "0.14"
+version := "0.15-SNAPSHOT"
 
 scalaVersion := "2.12.3"
 
