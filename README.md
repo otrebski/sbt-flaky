@@ -9,9 +9,9 @@ This project is proof of concept of flaky test detector SBT plugin. It can run t
 ## Installation
 Example usages can be found in [demo project](https://github.com/otrebski/sbt-flaky-demo) or in [SBT scripted tests](https://github.com/otrebski/sbt-flaky/tree/master/src/sbt-test/sbt-flaky).
 
-Add plugin to project configuration `project/plugins.sbt` or global configuration `~/.sbt/0.13/plugins/plugins.sbt`
+Add plugin to project configuration `project/plugins.sbt` or global configuration `~/.sbt/1.0/plugins/plugins.sbt`
 ```scala
-addSbtPlugin("pl.otrebski" % "sbt-flaky" % "0.13")
+addSbtPlugin("pl.otrebski" % "sbt-flaky" % "0.14")
 ```
 Don't forget to enable plugin in `build.sbt`
 ```scala 
@@ -19,7 +19,7 @@ lazy val library = (project in file("."))
   .enablePlugins(FlakyPlugin)
 ```
 ## Versions
-User version up to 0.12 for sbt 0.13. For sbt 1.0+ use plugin version 0.13.
+User version up to 0.12 for sbt 0.13. For sbt 1.0+ use plugin version 0.13+.
 
 ## How to run
 
