@@ -52,7 +52,9 @@ package object web {
 
   def singleTestFileName(test: Test): String = s"${test.test.replaceAll("/", "_")}.html"
 
-  def linkToSingleTest(test: Test) = singleTestDir(test) + "/" + singleTestFileName(test)
+  def linkToSingleTest(test: Test): String = singleTestDir(test) + "/" + singleTestFileName(test)
+
+  def linkToSingleTestClass(clazz: String): String = s"flaky-report.html#$clazz"
 
   def linkToRunNameInSingleTest(test: Test,runName:String) = s"${linkToSingleTest(test)}#$runName"
 }

@@ -1,7 +1,8 @@
 package flaky.report
 
 import _root_.flaky.slack.model._
-import flaky.{FlakyCase, FlakyTestReport, TimeReport}
+import flaky.web._
+import flaky.{FlakyCase, FlakyTestReport, TimeReport, web}
 import io.circe.generic.auto._
 import io.circe.syntax._
 
@@ -67,6 +68,7 @@ object SlackReport {
     val duration = flakyTestReport.timeDetails.duration()
     val timeSpend = TimeReport.formatSeconds(duration / 1000)
     val timeSpendPerIteration = TimeReport.formatSeconds((duration / flakyTestReport.testRuns.size) / 1000)
+    val htmlReportLink = htmlReportsUrl.map(h => s"<$h/index.html|HTML report> ${Icons.link}")
 
     val flakyText = flaky
       .filter(_.failures > 0)
@@ -76,20 +78,29 @@ object SlackReport {
         val list = kv._2
         val r = list
           .sortBy(_.failures())
-          .map(flaky => f":red_circle: ${flaky.failures * 100f / flaky.totalRun}%.2f%% ${flaky.test} ")
+          .map { flaky =>
+            val link = htmlReportsUrl
+              .map(l => if (l.endsWith("/")) l else l + "/")
+              .map(host => s"<$host/${linkToSingleTest(flaky.test)}|${Icons.link}>")
+            f"`${100 - flaky.failures * 100f / flaky.totalRun}%.2f%%` `${flaky.test.test}` ${link.getOrElse("")}"
+          }
           .mkString("\n")
-        s"$clazz:\n$r"
-      }.mkString("\n")
+        s"${Icons.failedClass} *$clazz:*\n$r"
+      }.mkString("Success rate for tests:\n","\n","")
 
     val attachment = Attachment(
       fallback = "Flaky test result for $projectName",
       color = "danger",
       pretext = s"Flaky test report for $projectName. Test were run ${flakyTestReport.testRuns.size} times",
       author_name = "sbt-flaky",
-      title = s"$failedCount of ${flaky.size} test cases are flaky.\nBuild success probability is ${flakyTestReport.successProbabilityPercent()}.\\nTest were running for $timeSpend [$timeSpendPerIteration/iteration]",
+      title =
+        s"""$failedCount of ${flaky.size} test cases are flaky.
+           |Build success probability is ${flakyTestReport.successProbabilityPercent()}.
+           |Test were running for $timeSpend [$timeSpendPerIteration/iteration]
+           |${htmlReportLink.getOrElse("")}""".stripMargin,
       text = flakyText,
       footer = "sbt-flaky",
-
+      mrkdwn_in = Seq("text")
     )
 
     val flakyCases: Map[String, List[FlakyCase]] = flakyTestReport.groupFlakyCases()
@@ -101,21 +112,20 @@ object SlackReport {
             fc =>
               val test = fc.test
               val message = fc.message.getOrElse("?")
-              val runNames = fc.runNames.sorted.mkString(", ")
-
               val text =
-                s"""|  ${Icons.failCase}[${fc.runNames.size} times] $test
-                    |  In following test runs: $runNames
+                s"""|  ${Icons.failCase}[${fc.runNames.size} times] ${test.test}
                     |  Message: $message
                     |  ${fc.stacktrace}""".stripMargin
               text
           }.mkString("\n")
 
-
+        val link = htmlReportsUrl
+          .map(l => if (l.endsWith("/")) l else l + "/")
+          .map(host => s"<$host/${web.linkToSingleTestClass(testClass)}|${Icons.link}>")
         Attachment(
           fallback = s"Flaky test report for $testClass",
           color = "danger",
-          title = s"${Icons.detailForClass} Details for $testClass: ",
+          title = s"${Icons.failedClass} Details for $testClass: ${link.getOrElse("")}",
           text = flakyTestsDescription,
           ts = timestamp
         )
@@ -146,7 +156,7 @@ object SlackReport {
             val link = htmlReportUrl
               .map(l => if (l.endsWith("/")) l else l + "/")
               .map(host => s"<$host/${linkToSingleTest(flaky.test)}|${Icons.link}>")
-            f" `${100-(flaky.failures * 100f) / flaky.totalRun}%.2f%%` `${flaky.test.test}` ${link.getOrElse("")}"
+            f" `${100 - (flaky.failures * 100f) / flaky.totalRun}%.2f%%` `${flaky.test.test}` ${link.getOrElse("")}"
           }
           .mkString("\n")
 
