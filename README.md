@@ -112,27 +112,7 @@ Currently only simple test report is printed:
 [info]    In following test runs: 1, 10, 11, 13, 16, 18, 19, 2, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 6, 7, 9
 [info]    Message: "____17-03-2_T22:57:__._____Z" was not equal to "____17-03-2_T22:57:__._____Z"
 [info]          at DateFormatSpec$$anonfun$1$$anonfun$apply$mcV$sp$2.apply(DateFormatSpec.scala:17)
-[info]     
-[info] 
-[info]            
-[info]  Filtering
-[info]  [25 times] A collection should be filtered with many filters
-[info]    In following test runs: 1, 10, 11, 12, 14, 15, 16, 17, 18, 19, 2, 20, 21, 22, 23, 24, 26, 28, 29, 4, 5, 6, 7, 8, 9
-[info]    Message: Futures timed out after [500 milliseconds]
-[info]          at Filtering$$anonfun$3.apply(Filtering.scala:20)
-[info]     
-[info] 
-[info]            
-[info]  tests.DateFormattingTest
-[info]  [5 times] formatParallelTest
-[info]    In following test runs: 20, 26, 28, 8, 9
-[info]    Message: expected:<00:00:00.00[0]> but was:<00:00:00.00[_]>
-[info]          at tests.DateFormattingTest.formatParallelTest(DateFormattingTest.java:25)
-[info]     
-[info]  [14 times] formatParallelTest
-[info]    In following test runs: 10, 11, 12, 13, 15, 17, 18, 22, 29, 3, 4, 5, 6, 7
-[info]    Message: expected:<00:00:00.00[_]> but was:<00:00:00.00[_]>
-[info]          at tests.DateFormattingTest.formatParallelTest(DateFormattingTest.java:27)
+
 [info]     
 ........
 ```
@@ -150,6 +130,9 @@ Summary"
 Details:
 ![Failure summary](screenshots/slack-details-v0.7.png)
 
+### HTML reports
+
+Example html reports can be found [here](http://sbt-flaky-demo.bitballoon.com)
 
 ## History trends
 
@@ -222,7 +205,7 @@ Checkout this [example project](https://github.com/otrebski/sbt-flaky-demo)
 - [x] Use results only from last runs. Ignore junk dirs from other `flaky` run
 - [x] [Suppress output from test](https://github.com/otrebski/sbt-flaky/issues/2) 
 - [x] Display nice progress with ETA
-- [ ] If project is using git, list changes since last run on report.
+- [x] If project is using git, list changes since last run on report.
 - [x] Add colors to console output
 
 
