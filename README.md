@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/otrebski/sbt-flaky.svg?branch=master)](https://travis-ci.org/otrebski/sbt-flaky)
 
 ## Introduction
-This project is proof of concept of flaky test detector SBT plugin. It can run test X times, for X minutes or until first failure.
+Sbt-flky is sbt plugin to detect flaky tests in Scala project. It can run test X times, for X minutes or until first failure.
 
 
 ## Installation
