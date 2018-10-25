@@ -1,14 +1,12 @@
 package flaky.report
 
-import _root_.flaky.slack.model._
-import flaky.web._
-import flaky.{FlakyCase, FlakyTestReport, TimeReport, web}
-import io.circe.generic.auto._
-import io.circe.syntax._
-
 import scala.collection.immutable.Iterable
 import scala.language.implicitConversions
 
+import _root_.flaky.slack.model._
+import flaky.json.{JsObject, JsonWriter}
+import flaky.web._
+import flaky.{FlakyCase, FlakyTestReport, TimeReport, web}
 
 object SlackReport {
 
@@ -23,17 +21,47 @@ object SlackReport {
              htmlReportsUrl: Option[String] = None,
              details: Boolean = false): String = {
 
-    if (flakyTestReport.flakyTests.exists(_.failures > 0)) {
+    val r: Message = if (flakyTestReport.flakyTests.exists(_.failures > 0)) {
       if (details) {
-        renderFailed(flakyTestReport, htmlReportsUrl).asJson.noSpaces
+        renderFailed(flakyTestReport, htmlReportsUrl)
       } else {
-        renderFailedShort(flakyTestReport, htmlReportsUrl).asJson.noSpaces
+        renderFailedShort(flakyTestReport, htmlReportsUrl)
       }
     } else {
-      renderNoFailures(flakyTestReport).asJson.noSpaces
+      renderNoFailures(flakyTestReport)
     }
-  }
 
+    import flaky.json.JsonSyntax._
+    implicit val messageWriter: JsonWriter[Message] = (value: Message) => {
+      import flaky.json.JsonWriterInstances._
+      implicit val attachmentWriter: JsonWriter[Attachment] = (a: Attachment) => JsObject(Map(
+        "falback" -> a.fallback.toJson,
+        "callback_id" -> a.callback_id.toJson,
+        "color" -> a.color.toJson,
+        "pretext" -> a.pretext.toJson,
+        "author_name" -> a.author_name.toJson,
+        "author_link" -> a.author_link.toJson,
+        "author_icon" -> a.author_icon.toJson,
+        "title" -> a.title.toJson,
+        "title_link" -> a.title_link.toJson,
+        "text" -> a.text.toJson,
+        "image_url" -> a.image_url.toJson,
+        "thumb_url" -> a.thumb_url.toJson,
+        "footer" -> a.footer.toJson,
+        "ts" -> a.ts.toJson,
+        "mrkdwn_in" -> a.mrkdwn_in.toJson
+      ))
+      implicit val attachmentList: JsonWriter[Seq[Attachment]] = listWriter(attachmentWriter)
+      val attachmentJson = JsObject(Map(
+        "text" -> value.text.toJson,
+        "attachments" -> value.attachments.toJson
+      ))
+      attachmentJson
+    }
+
+    val result = r.toJson
+    result.compactPrint()
+  }
 
   def renderNoFailures(flakyTestReport: FlakyTestReport): Message = {
     val timestamp = flakyTestReport.timeDetails.start
@@ -53,7 +81,10 @@ object SlackReport {
       pretext = s"Flaky test report for $projectName",
       author_name = "sbt-flaky",
       title = "Flaky test result",
-      text = s"All tests are correct [${flaky.headOption.map(f => f.totalRun).getOrElse(0)} runs]\nTest were running for $timeSpend [$timeSpendPerIteration/iteration]",
+      text = s"All tests are correct [${
+        flaky.headOption.map(f => f.totalRun)
+          .getOrElse(0)
+      } runs]\nTest were running for $timeSpend [$timeSpendPerIteration/iteration]",
       footer = "sbt-flaky",
       ts = timestamp
     )
@@ -86,7 +117,7 @@ object SlackReport {
           }
           .mkString("\n")
         s"${Icons.failedClass} *$clazz:*\n$r"
-      }.mkString("Success rate for tests:\n","\n","")
+      }.mkString("Success rate for tests:\n", "\n", "")
 
     val attachment = Attachment(
       fallback = "Flaky test result for $projectName",
@@ -162,7 +193,6 @@ object SlackReport {
 
         s"${Icons.failedClass} *$clazz*:\n$r"
       }.mkString("Success rate for tests:\n", "\n", "")
-
 
     val htmlReportLink = htmlReportUrl.map(h => s"<$h/index.html|HTML report> ${Icons.link}")
 
