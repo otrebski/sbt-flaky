@@ -84,7 +84,7 @@ case class FlakyTestReport(projectName: String, timeDetails: TimeDetails, testRu
               listOfFlakyTests.map {
                 _.groupByStacktrace()
                   .map { list =>
-                    val runNames: List[String] = list.map(_.runName)
+                    val runNames: List[String] = list.map(_.runName).sorted
                     val messages: Seq[String] = list.flatMap(_.failureDetails).map(_.message)
                     val msg: Option[String] = findCommonString(messages.toList)
                     val stacktrace = list.headOption.flatMap(_.failureDetails.flatMap(_.firstNonAssertStacktrace())).getOrElse("")
