@@ -4,9 +4,9 @@ os:
 script:
   - sbt ++$TRAVIS_SCALA_VERSION test scripted
 scala:
-  - 2.12.3
+  - 2.12.15
 jdk:
-  - openjdk8
+  - openjdk11
 sudo: false
 notifications:
   email:

@@ -1,6 +1,7 @@
 package flaky
 
 import org.scalatest.{Matchers, WordSpec}
+import collection.JavaConverters._
 
 class package$Spec extends WordSpec with Matchers {
 
@@ -72,7 +73,7 @@ class package$Spec extends WordSpec with Matchers {
                     |java.lang.AssertionError: assertion failed: expected User(Name(Kowalski),List(),List(),List()), found User(Name(Kowalski),List(Property(P1(2848338480078734399),P2(xxx),P3(X),192838475652)),List(),List())""".stripMargin
       val commonS = "java.lang.AssertionError: assertion failed: expected User(Name(Kowalski),List(),List(),List()), found User(Name(Kowalski),List(Property(P1(___________________),P2(xxx),P3(X),____________)),List(),List())"
 
-      findCommonString(input.lines.toList) shouldBe Some(commonS)
+      findCommonString(input.lines.iterator.asScala.toList) shouldBe Some(commonS)
     }
   }
 
