@@ -1,11 +1,11 @@
 > flaky times=3
 $ exists target/flaky-test-reports/1/
 $ exists target/flaky-test-reports/2/
-$ exists target/flaky-test-reports/3/
+$ exists target/flaky-test-reports/3/        
 $ exists target/flaky-test-reports-html/flaky-report.html
-$ exists "target/flaky-test-reports-html/ExampleSpec/A Stack should pop values in last-in-first-out order.html"
-$ exists "target/flaky-test-reports-html/subfolder.ExampleSpec/A Stack should pop values in last-in-first-out order.html"
-$ exists "target/flaky-test-reports-html/subfolder.subsubfolder.ExampleSpec/A Stack should pop values in last-in-first-out order.html"
+$ exists 'target/flaky-test-reports-html/ExampleSpec/A Stack should pop values in last-in-first-out order.html'
+$ exists 'target/flaky-test-reports-html/subfolder.ExampleSpec/A Stack should pop values in last-in-first-out order.html'
+$ exists 'target/flaky-test-reports-html/subfolder.subsubfolder.ExampleSpec/A Stack should pop values in last-in-first-out order.html'
 $ absent target/flaky-test-reports/slack.json
 
 
