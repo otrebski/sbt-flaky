@@ -2,7 +2,7 @@ enablePlugins(FlakyPlugin)
 
 name := "sendToSlack"
 
-scalaVersion := "2.12.3"
+scalaVersion := "2.12.17"
 
 flakySlackHook := Some("http://127.0.0.1/hook/id/x")
 

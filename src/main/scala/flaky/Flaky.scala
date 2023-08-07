@@ -8,6 +8,7 @@ import scala.collection.immutable.{Iterable, Seq}
 import scala.language.postfixOps
 import scala.util.Try
 import scala.xml.{Elem, NodeSeq, XML}
+import collection.JavaConverters._
 
 case class Test(clazz: String, test: String) {
   def classNameOnly(): String = clazz.split('.').lastOption.getOrElse("<?>")
@@ -28,6 +29,8 @@ case class FailureDetails(message: String, ftype: String, stacktrace: String) {
   def firstNonAssertStacktrace(): Option[String] = {
     stacktrace
       .lines
+      .iterator()
+      .asScala
       .filter(_.startsWith("\tat"))
       .filter(!_.startsWith("\tat org.junit"))
       .filter(!_.startsWith("\tat org.testng"))

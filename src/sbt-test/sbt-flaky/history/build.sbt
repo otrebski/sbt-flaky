@@ -1,6 +1,6 @@
 name := "history"
 
-scalaVersion := "2.12.3"
+scalaVersion := "2.12.17"
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 
