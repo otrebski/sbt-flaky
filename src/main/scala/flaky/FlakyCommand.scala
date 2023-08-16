@@ -12,40 +12,61 @@ object FlakyCommand {
 
   def flaky: Command = Command("flaky")(parser) {
     (state, args) =>
-      val targetDir = Project.extract(state).get(Keys.target)
+      val extracted = Project extract state
+      import extracted._
+      import sbt.Keys.logLevel
+      val structure = extracted.structure
+      val projectRefs:Seq[ProjectRef] = structure.allProjectRefs
       val baseDirectory = Project.extract(state).get(Keys.baseDirectory)
 
 
-      val testReports = new File(targetDir, "test-reports")
-      val flakyReportsDir = new File(targetDir, Project.extract(state).get(autoImport.flakyReportsDir))
-      val flakyReportsDirHtml = new File(targetDir, Project.extract(state).get(autoImport.flakyHtmlReportDir))
+      // val testReports = new File(targetDir, "test-reports")
+      
       val logFiles = Project.extract(state).get(autoImport.flakyAdditionalFiles)
       val logLevelInTask = Project.extract(state).get(autoImport.flakyLogLevelInTask)
       val slackHook: Option[String] = Project.extract(state).get(autoImport.flakySlackHook)
       val taskKeys: Seq[TaskKey[Unit]] = Project.extract(state).get(autoImport.flakyTask)
       val htmlReportsUrl = Project.extract(state).get(autoImport.flakyHtmlReportUrl)
       val detailedSlackReport = Project.extract(state).get(autoImport.flakySlackDetailedReport)
-      val moveFilesF = moveFiles(flakyReportsDir, testReports, logFiles) _
+      // val moveFilesF = moveFiles(flakyReportsDir, testReports, logFiles) _ //TODO check if this work with multnode
 
-      def runTasks(state: State, runIndex: Int): Unit = {
-        taskKeys.foreach { taskKey =>
-          val extracted = Project extract state
-          import extracted._
-          import sbt.Keys.logLevel
-          val newState = append(Seq(logLevel in taskKey := logLevelInTask), state)
+      def runTasks(state: State, runIndex: Int): Unit = {        
+        taskKeys.foreach { taskKey =>                    
+          val newState = appendWithSession(Seq(logLevel/taskKey := logLevelInTask), state)      
           Project.runTask(taskKey, newState, checkCycles = true)
-        }
-        if (Flaky.isFailed(testReports)) {
-          val flakyReport = Flaky.processFolder(testReports)
-          flakyReport
-            .filter(_.failureDetails.nonEmpty)
-            .foreach(ft => state.log.error(s"${scala.Console.RED}Failed ${ft.test.clazz}:${ft.test.test} [${ft.time}s]"))
-        }
-        moveFilesF(runIndex)
+        
+          projectRefs.foreach{ projectRef =>
+            state.log.info(s"Testing in ${projectRef.project}")
+            val projectDir = new File(new File(projectRef.build), projectRef.project)
+            state.log.info(s"Project dir is ${projectDir.getAbsolutePath()}")
+            val targetDir = new File(projectDir, "target")
+            state.log.info(s"Target dir is ${targetDir.getAbsolutePath()}")
+            val testReports = new File(targetDir, "test-reports")
+            state.log.info(s"TestReport dir is ${testReports.getAbsolutePath()}")
+            println(s"Processing test report ${testReports.getAbsolutePath()}")
+            if (Flaky.isFailed(projectDir)) {
+              val flakyReport = Flaky.processFolder(testReports)
+              flakyReport
+                .filter(_.failureDetails.nonEmpty)
+                .foreach(ft => state.log.error(s"${scala.Console.RED}Failed ${ft.test.clazz}:${ft.test.test} [${ft.time}s] in ${projectRef.project}"))    
+            } else{
+              state.log.info(s"${scala.Console.GREEN}All test were succesfull in ${projectRef.project}")
+            }
+
+            state.log.info(s"Backing up files for ${projectRef.project}")            
+            val flakyReportsDir = new File(targetDir, Project.extract(state).get(autoImport.flakyReportsDir))
+            val flakyReportsDirHtml = new File(targetDir, Project.extract(state).get(autoImport.flakyHtmlReportDir))
+            flakyReportsDir.mkdirs()
+            state.log.info(s"Moving to ${flakyReportsDir.getAbsolutePath()} test-reports [$runIndex]")
+            moveFiles(flakyReportsDir, testReports, logFiles)(runIndex)
+          
+          }
+
+        }                
       }
 
       state.log.info(s"Executing flaky command")
-      flakyReportsDir.mkdirs()
+      
       val start = System.currentTimeMillis
 
       val iterationNames = args match {
@@ -74,18 +95,31 @@ object FlakyCommand {
           var foundFail = false
           while (!foundFail) {
             runTasks(state, i)
-            if (Flaky.isFailed(testReports)) {
-              foundFail = true
-            }
+            val foundFail = projectRefs
+              .toList
+             .map(projectRef => new File(projectRef.build))
+             .map(new File(_, "target"))
+             .map(new File(_,"test-reports"))
+             .map(Flaky.isFailed)             
+             .foldLeft(false){case (acc, e) => acc | e}
+                         
             i = i + 1
           }
           (1 to i).map(_.toString).toList
       }
 
       val name: String = Project.extract(state).get(sbt.Keys.name)
-      val report: FlakyTestReport = Flaky.createReport(name, TimeDetails(start, System.currentTimeMillis()), iterationNames, flakyReportsDir)
+      val finishTimestamp = System.currentTimeMillis()
 
 
+      projectRefs.foreach { projectRef =>
+        state.log.info(s"Preparing reports for ${projectRef.project}")
+        val projectDir = new File(new File(projectRef.build), projectRef.project)
+        val targetDir = new File(projectDir, "target")
+        val testReports = new File(targetDir, "test-reports")
+        val flakyReportsDir = new File(targetDir, Project.extract(state).get(autoImport.flakyReportsDir))
+        val flakyReportsDirHtml = new File(targetDir, Project.extract(state).get(autoImport.flakyHtmlReportDir))
+      val report: FlakyTestReport = Flaky.createReport(name, TimeDetails(start, finishTimestamp), iterationNames, flakyReportsDir)
       val historyOpt: Option[HistoryReport] = Project
         .extract(state)
         .get(autoImport.flakyHistoryDir)
@@ -117,7 +151,7 @@ object FlakyCommand {
         flakyReportsDirHtml = flakyReportsDirHtml,
         git = Git(baseDirectory),
         log = state.log)
-
+      }
       state
   }
 
@@ -200,6 +234,7 @@ object FlakyCommand {
     if (iterationDir.exists()) {
       iterationDir.delete()
     }
+    println(s"Renaming ${testReports.getAbsolutePath()} to ${iterationDir.getAbsolutePath()}")
     testReports.renameTo(iterationDir)
     logFiles.foreach(f => f.renameTo(new File(iterationDir, f.getName)))
   }

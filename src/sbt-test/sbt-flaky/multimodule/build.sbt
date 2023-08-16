@@ -2,6 +2,7 @@ lazy val root = (project in file("."))
   .settings(scalaVersion := "3.3.0")
   .aggregate(util, core)
   .enablePlugins(FlakyPlugin)
+  .settings(flakyTask := Seq(util/Test/test, core/Test/test))
 
 lazy val util = (project in file("util"))
   .settings(
